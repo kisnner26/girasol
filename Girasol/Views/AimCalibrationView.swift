@@ -1,58 +1,132 @@
 import SwiftUI
 import GameCore
 
-/// calibracion de puntería en tres pasos: quieto, inclinar a la izquierda, inclinar hacia arriba.
-/// los ejes del reloj cambian segun la muñeca y el lado de la corona, por eso se aprenden aqui.
+/// calibracion de puntería sin pulsar nada: quieto, inclinar a la izquierda, volver al centro e inclinar hacia arriba.
+/// cada postura se captura sola cuando el reloj se queda quieto en ella (pulsar un botón movía la muñeca).
 struct AimCalibrationView: View {
-    private enum Step: Int { case neutral, left, up, done, failed }
-
     @Environment(\.dismiss) private var dismiss
-    @State private var step = Step.neutral
-    @State private var neutral: Attitude?
-    @State private var left: Attitude?
-    @State private var latest = Attitude(roll: 0, pitch: 0, yaw: 0)
+    @State private var calibrator = AimCalibrator()
+    @State private var lastCaptures = 0
+    @State private var attempt = 0
     private let settings = MotionSettings.shared
 
     var body: some View {
         VStack(spacing: 8) {
             Caption("puntería")
-            switch step {
-            case .neutral: page("1 de 3", "sostén el reloj como para jugar y quédate quieto.", "listo") { neutral = latest; step = .left }
-            case .left: page("2 de 3", "inclina la muñeca hacia la izquierda, hasta donde apuntarías.", "así") { left = latest; step = .up }
-            case .up: page("3 de 3", "vuelve al centro e inclina hacia arriba.", "así") { finish(up: latest) }
+            switch calibrator.state {
+            case .running(let step): running(step)
             case .done:
                 Text("✦").font(.serif(24)).foregroundStyle(Palette.ink)
                 Text("puntería lista").font(.serif(16, italic: true)).foregroundStyle(Palette.ink)
                 Button("volver") { dismiss() }.buttonStyle(InkButtonStyle()).doubleTapPrimary()
-            case .failed:
-                Text("no se notó el movimiento").font(.serif(14, italic: true)).foregroundStyle(Palette.rose).multilineTextAlignment(.center)
-                Text("inclina más la muñeca en cada paso.").font(.serif(11, italic: true)).foregroundStyle(Palette.mid).multilineTextAlignment(.center)
-                Button("reintentar") { step = .neutral }.buttonStyle(InkButtonStyle()).doubleTapPrimary()
+            case .failed(let reason):
+                Text(title(reason)).font(.serif(14, italic: true)).foregroundStyle(Palette.rose).multilineTextAlignment(.center)
+                Text(hint(reason)).font(.serif(11, italic: true)).foregroundStyle(Palette.mid).multilineTextAlignment(.center)
+                Button("reintentar") { restart() }.buttonStyle(InkButtonStyle()).doubleTapPrimary()
             }
         }
         .padding(.horizontal, 10)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .paperBackground()
         .keepAwake()
-        .onAppear { MotionService.shared.start(hz: 30) { latest = $0.attitude } }
+        .onAppear { start() }
         .onDisappear { MotionService.shared.stop() }
     }
 
-    private func page(_ n: LocalizedStringKey, _ text: LocalizedStringKey, _ button: LocalizedStringKey, _ action: @escaping () -> Void) -> some View {
+    // MARK: pasos
+
+    private func running(_ step: AimCalibrator.Step) -> some View {
         VStack(spacing: 8) {
-            Caption(n, color: Palette.mid)
-            Text(text).font(.serif(13, italic: true)).foregroundStyle(Palette.ink).multilineTextAlignment(.center)
+            Caption(verbatim: "\(step.rawValue + 1)/3", color: Palette.mid)
+            Text(instruction(step)).font(.serif(13, italic: true)).foregroundStyle(Palette.ink).multilineTextAlignment(.center)
                 .fixedSize(horizontal: false, vertical: true)
-            Button(button) { Haptics.play(.click); action() }.buttonStyle(InkButtonStyle()).doubleTapPrimary()
+            gauge(step)
+            Text(subtitle(step)).font(.serif(10, italic: true)).foregroundStyle(Palette.mid).multilineTextAlignment(.center)
         }
     }
 
-    private func finish(up: Attitude) {
-        guard let n = neutral, let l = left, let m = AimMapping.calibrate(neutral: n, left: l, up: up) else {
-            Haptics.play(.failure); step = .failed; return
+    /// el anillo se llena mientras te quedas quieto; la barra de abajo muestra cuanto has inclinado.
+    private func gauge(_ step: AimCalibrator.Step) -> some View {
+        VStack(spacing: 6) {
+            ZStack {
+                Circle().stroke(Palette.faint, lineWidth: 3)
+                Circle().trim(from: 0, to: calibrator.hold).stroke(Palette.moss, style: StrokeStyle(lineWidth: 3, lineCap: .round))
+                    .rotationEffect(.degrees(-90))
+            }
+            .frame(width: 44, height: 44)
+            if step != .neutral {
+                GeometryReader { g in
+                    let full = g.size.width
+                    ZStack(alignment: .leading) {
+                        Capsule().fill(Palette.faint).frame(height: 4)
+                        Capsule().fill(calibrator.angle >= AimMapping.minAngle ? Palette.moss : Palette.olive)
+                            .frame(width: min(full, full * calibrator.angle / 0.4), height: 4)
+                        Rectangle().fill(Palette.ink).frame(width: 1, height: 9)
+                            .offset(x: full * AimMapping.minAngle / 0.4)
+                    }
+                }
+                .frame(width: 100, height: 9)
+            }
         }
-        settings.mapping = m
-        Haptics.play(.success)
-        step = .done
+    }
+
+    private func instruction(_ step: AimCalibrator.Step) -> LocalizedStringKey {
+        switch step {
+        case .neutral: "sostén el reloj como para jugar y quédate quieto."
+        case .left: "inclina la muñeca hacia la izquierda y quédate quieto."
+        case .up: "vuelve al centro, inclina hacia arriba y quédate quieto."
+        }
+    }
+
+    private func subtitle(_ step: AimCalibrator.Step) -> LocalizedStringKey {
+        switch step {
+        case .neutral: "se fija solo"
+        case .left, .up: "llega hasta la marca de la barra"
+        }
+    }
+
+    private func title(_ r: AimCalibrator.Reason) -> LocalizedStringKey {
+        switch r {
+        case .tooLittleMovement: "no se notó el movimiento"
+        case .notStill: "no te quedaste quieto"
+        case .sameDirection: "izquierda y arriba fueron iguales"
+        }
+    }
+
+    private func hint(_ r: AimCalibrator.Reason) -> LocalizedStringKey {
+        switch r {
+        case .tooLittleMovement: "inclina más la muñeca en cada paso."
+        case .notStill: "al llegar a la postura, aguanta medio segundo sin moverte."
+        case .sameDirection: "el segundo giro tiene que ser hacia arriba, no otra vez hacia la izquierda."
+        }
+    }
+
+    // MARK: flujo
+
+    private func start() {
+        calibrator = AimCalibrator()
+        lastCaptures = 0
+        MotionService.shared.start(hz: 30) { sample in
+            calibrator.feed(sample)
+            if calibrator.captures != lastCaptures {
+                lastCaptures = calibrator.captures
+                Haptics.play(calibrator.state == .done ? .success : .click)
+            }
+            switch calibrator.state {
+            case .done:
+                if let m = calibrator.mapping { settings.mapping = m }
+                MotionService.shared.stop()
+            case .failed:
+                Haptics.play(.failure)
+                MotionService.shared.stop()
+            case .running:
+                break
+            }
+        }
+    }
+
+    private func restart() {
+        MotionService.shared.stop()
+        start()
     }
 }

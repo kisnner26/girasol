@@ -130,67 +130,220 @@ final class SwingDetectorTests: XCTestCase {
 
 // MARK: - calibracion de la puntería
 
-final class AimTests: XCTestCase {
-    func testCalibrationLearnsAxesAndSigns() throws {
-        let m = try XCTUnwrap(AimMapping.calibrate(neutral: att(0, 0, 0), left: att(0.4, 0.02, 0.01), up: att(0.02, -0.5, 0)))
-        XCTAssertEqual(m.horizontal, .roll); XCTAssertEqual(m.horizontalSign, -1); XCTAssertEqual(m.horizontalRange, 0.4)
-        XCTAssertEqual(m.vertical, .pitch); XCTAssertEqual(m.verticalSign, -1); XCTAssertEqual(m.verticalRange, 0.5)
-        XCTAssertEqual(m.point(for: att(0.4, 0, 0)).x, -1, accuracy: 1e-9, "a la izquierda")
-        XCTAssertEqual(m.point(for: att(-0.2, 0, 0)).x, 0.5, accuracy: 1e-9, "hacia el otro lado")
-        XCTAssertEqual(m.point(for: att(0, -0.25, 0)).y, 0.5, accuracy: 1e-9, "hacia arriba")
-        XCTAssertEqual(m.point(for: att(0, 0, 0)).x, 0)
+private func tilt(_ axis: Vec3, _ angle: Double) -> Quat { Quat(axis: axis, angle: angle) }
+private let ex = Vec3(x: 1, y: 0, z: 0), ey = Vec3(x: 0, y: 1, z: 0), ez = Vec3(x: 0, y: 0, z: 1)
+
+final class QuatTests: XCTestCase {
+    func testRotationVectorRecoversAxisAndAngle() {
+        let r = tilt(Vec3(x: 0, y: 3, z: 4), 0.5).rotationVector
+        XCTAssertEqual(r.length, 0.5, accuracy: 1e-9)
+        XCTAssertEqual(r.normalized.y, 0.6, accuracy: 1e-9); XCTAssertEqual(r.normalized.z, 0.8, accuracy: 1e-9)
     }
 
-    func testDifferentWristOrientationsGiveDifferentMappings() throws {
-        // otra muñeca / corona: izquierda = yaw negativo, arriba = roll positivo
-        let m = try XCTUnwrap(AimMapping.calibrate(neutral: att(0.1, 0.1, 0.1), left: att(0.12, 0.1, -0.4), up: att(0.6, 0.1, 0.12)))
-        XCTAssertEqual(m.horizontal, .yaw); XCTAssertEqual(m.horizontalSign, 1)
-        XCTAssertEqual(m.vertical, .roll); XCTAssertEqual(m.verticalSign, 1)
-        XCTAssertLessThan(m.point(for: att(0.1, 0.1, -0.3)).x, 0)
-        XCTAssertGreaterThan(m.point(for: att(0.5, 0.1, 0.1)).y, 0)
+    func testTakesTheShortWayAndIdentityIsZero() {
+        XCTAssertEqual(tilt(ez, 2 * .pi - 0.3).rotationVector.length, 0.3, accuracy: 1e-9, "casi una vuelta completa = -0.3")
+        XCTAssertEqual(Quat.identity.rotationVector, .zero)
+    }
+
+    func testRotationToIsMeasuredInTheOriginalFrame() {
+        let base = tilt(ez, 1.0)
+        let moved = base * tilt(ex, 0.2)       // giro extra alrededor del eje x del propio reloj
+        let r = base.rotation(to: moved)
+        XCTAssertEqual(r.x, 0.2, accuracy: 1e-9); XCTAssertEqual(r.y, 0, accuracy: 1e-9); XCTAssertEqual(r.z, 0, accuracy: 1e-9)
+    }
+}
+
+final class AimTests: XCTestCase {
+    private func map(left: Vec3, up: Vec3, neutral: Quat = .identity) throws -> AimMapping {
+        try AimMapping.calibrate(neutral: neutral, left: left, up: up).get()
+    }
+
+    func testCalibrationLearnsDirections() throws {
+        let m = try map(left: ey * 0.4, up: ex * -0.5)
+        XCTAssertEqual(m.right, ey * -1); XCTAssertEqual(m.up.x, -1, accuracy: 1e-9)
+        XCTAssertEqual(m.horizontalRange, 0.4, accuracy: 1e-9); XCTAssertEqual(m.verticalRange, 0.5, accuracy: 1e-9)
+        XCTAssertEqual(m.point(for: tilt(ey, 0.4)).x, -1, accuracy: 1e-9, "a la izquierda")
+        XCTAssertEqual(m.point(for: tilt(ey, -0.2)).x, 0.5, accuracy: 1e-9, "hacia el otro lado")
+        XCTAssertEqual(m.point(for: tilt(ex, -0.25)).y, 0.5, accuracy: 1e-9, "hacia arriba")
+        XCTAssertEqual(m.point(for: .identity), Vec(x: 0, y: 0))
+    }
+
+    func testAnyAxisWorksNotJustRollPitchYaw() throws {
+        // otra muñeca: izquierda = giro alrededor de z, arriba = giro alrededor de una diagonal
+        let up = Vec3(x: 1, y: 1, z: 0).normalized * 0.45
+        let m = try map(left: ez * -0.35, up: up)
+        XCTAssertGreaterThan(m.point(for: tilt(ez, 0.3)).x, 0.5)
+        XCTAssertLessThan(m.point(for: tilt(ez, -0.3)).x, -0.5)
+        XCTAssertGreaterThan(m.point(for: tilt(up, 0.3)).y, 0.5)
+    }
+
+    func testWorksFromAnyNeutralPosture() throws {
+        let n = tilt(Vec3(x: 1, y: 2, z: 3), 2.0)                    // el reloj no esta "plano"
+        let m = try map(left: ey * 0.4, up: ex * -0.5, neutral: n)
+        XCTAssertEqual(m.point(for: n * tilt(ey, 0.4)).x, -1, accuracy: 1e-9)
+        XCTAssertEqual(m.point(for: n).x, 0, accuracy: 1e-9)
+    }
+
+    func testUpIsMadePerpendicularToRight() throws {
+        let m = try map(left: ey * 0.4, up: Vec3(x: -0.4, y: -0.25, z: 0))     // "arriba" con algo de lado mezclado
+        XCTAssertEqual(m.up.dot(m.right), 0, accuracy: 1e-9)
+        XCTAssertEqual(m.up.length, 1, accuracy: 1e-9)
     }
 
     func testCalibrationRejectsBadMovements() {
-        XCTAssertNil(AimMapping.calibrate(neutral: att(0, 0, 0), left: att(0.05, 0, 0), up: att(0, 0.5, 0)), "izquierda demasiado pequeña")
-        XCTAssertNil(AimMapping.calibrate(neutral: att(0, 0, 0), left: att(0.4, 0, 0), up: att(0.5, 0.05, 0.05)), "arriba usa el mismo eje y el resto casi no se movio")
-        XCTAssertNotNil(AimMapping.calibrate(neutral: att(0, 0, 0), left: att(0.4, 0, 0), up: att(0.5, 0.3, 0)), "arriba con otro eje vale")
+        XCTAssertEqual(AimMapping.calibrate(neutral: .identity, left: ey * 0.16, up: ex * 0.5), .failure(.tooLittleMovement))
+        XCTAssertEqual(AimMapping.calibrate(neutral: .identity, left: ey * 0.4, up: ex * 0.16), .failure(.tooLittleMovement))
+        XCTAssertEqual(AimMapping.calibrate(neutral: .identity, left: ey * 0.4, up: ey * 0.5), .failure(.sameDirection), "es el mismo giro")
+        XCTAssertEqual(AimMapping.calibrate(neutral: .identity, left: ey * 0.4, up: Vec3(x: 0.05, y: 0.5, z: 0)), .failure(.sameDirection))
+        XCTAssertNotNil(try? AimMapping.calibrate(neutral: .identity, left: ey * 0.4, up: Vec3(x: 0.3, y: 0.5, z: 0)).get(), "con 31 grados de diferencia ya vale")
+        XCTAssertNotNil(try? AimMapping.calibrate(neutral: .identity, left: ey * 0.17, up: ex * 0.17).get(), "10 grados justos valen")
     }
 
     func testRangesAreClamped() throws {
-        let big = try XCTUnwrap(AimMapping.calibrate(neutral: att(0, 0, 0), left: att(1.5, 0, 0), up: att(0, 1.2, 0)))
-        XCTAssertEqual(big.horizontalRange, 0.8); XCTAssertEqual(big.verticalRange, 0.8)
-        let small = try XCTUnwrap(AimMapping.calibrate(neutral: att(0, 0, 0), left: att(0.16, 0, 0), up: att(0, 0.16, 0)))
-        XCTAssertEqual(small.horizontalRange, 0.25); XCTAssertEqual(small.verticalRange, 0.25)
+        let big = try map(left: ey * 1.5, up: ex * 1.2)
+        XCTAssertEqual(big.horizontalRange, 0.7); XCTAssertEqual(big.verticalRange, 0.7)
+        let small = try map(left: ey * 0.18, up: ex * 0.18)
+        XCTAssertEqual(small.horizontalRange, 0.22); XCTAssertEqual(small.verticalRange, 0.22)
     }
 
-    func testPointClampsAndWrapsAngles() throws {
-        let m = try XCTUnwrap(AimMapping.calibrate(neutral: att(0, 0, 3.1), left: att(0, 0, 3.1 + 0.4 - 2 * .pi), up: att(0.4, 0, 3.1)))
-        // el yaw cruza la vuelta de ±pi: el delta pequeño sigue siendo pequeño
-        XCTAssertEqual(m.horizontal, .yaw)
-        XCTAssertEqual(m.point(for: att(0, 0, 3.1)).x, 0, accuracy: 1e-9)
-        // de 3.1 a -3.09 hay 0.0932 rad por el camino corto; horizontalSign es -1 y el alcance 0.4
-        XCTAssertEqual(m.point(for: att(0, 0, -3.09)).x, -(2 * .pi - 6.19) / 0.4, accuracy: 0.001)
-        XCTAssertEqual(m.point(for: att(1.0, 0, 3.1)).y, 1, "se recorta a 1")
-        XCTAssertEqual(m.point(for: att(-1.0, 0, 3.1)).y, -1)
+    func testPointIsClamped() throws {
+        let m = try map(left: ey * 0.4, up: ex * -0.5)
+        XCTAssertEqual(m.point(for: tilt(ey, 1.0)).x, -1)
+        XCTAssertEqual(m.point(for: tilt(ey, -1.0)).x, 1)
+        XCTAssertEqual(m.point(for: tilt(ex, -1.0)).y, 1)
+        XCTAssertEqual(m.point(for: tilt(ex, 1.0)).y, -1)
     }
 
     func testMappingIsCodable() throws {
-        let m = try XCTUnwrap(AimMapping.calibrate(neutral: att(0, 0, 0), left: att(0.4, 0, 0), up: att(0, 0.5, 0)))
+        let m = try map(left: ey * 0.4, up: ex * -0.5, neutral: tilt(ez, 0.3))
         XCTAssertEqual(try JSONDecoder().decode(AimMapping.self, from: JSONEncoder().encode(m)), m)
     }
 
     func testTrackerSmoothsInTime() throws {
-        let m = try XCTUnwrap(AimMapping.calibrate(neutral: att(0, 0, 0), left: att(0.4, 0, 0), up: att(0, 0.5, 0)))
+        let m = try map(left: ey * 0.4, up: ex * -0.5)
         var t = AimTracker(mapping: m)
-        XCTAssertEqual(t.update(MotionSample(t: 0, attitude: att(0, 0, 0))).x, 0)
+        XCTAssertEqual(t.update(MotionSample(t: 0, quat: .identity)).x, 0)
         // salto a x = -1: tras una constante de tiempo, ~63 %
-        let p = t.update(MotionSample(t: 0.07, attitude: att(0.4, 0, 0)))
+        let p = t.update(MotionSample(t: 0.07, quat: tilt(ey, 0.4)))
         XCTAssertEqual(p.x, -(1 - exp(-1)), accuracy: 0.01)
         var last = p.x
-        for i in 1...60 { last = t.update(MotionSample(t: 0.07 + Double(i) / 60, attitude: att(0.4, 0, 0))).x }
+        for i in 1...60 { last = t.update(MotionSample(t: 0.07 + Double(i) / 60, quat: tilt(ey, 0.4))).x }
         XCTAssertEqual(last, -1, accuracy: 0.01)
-        let same = t.update(MotionSample(t: 5, attitude: att(0.4, 0, 0))).x
-        XCTAssertEqual(t.update(MotionSample(t: 5, attitude: att(0, 0, 0))).x, same, "mismo instante: no se mueve")
+        let same = t.update(MotionSample(t: 5, quat: tilt(ey, 0.4))).x
+        XCTAssertEqual(t.update(MotionSample(t: 5, quat: .identity)).x, same, "mismo instante: no se mueve")
+    }
+}
+
+/// simula a alguien calibrando: quieto, izquierda, centro, arriba.
+final class AimCalibratorTests: XCTestCase {
+    private struct Rig {
+        var c = AimCalibrator()
+        var t = 0.0
+        /// se mantiene en `q` durante `seconds`; `gyro` alto = en movimiento.
+        mutating func hold(_ q: Quat, _ seconds: Double, moving: Bool = false) {
+            let end = t + seconds
+            while t < end {
+                c.feed(MotionSample(t: t, gyro: Vec3(x: moving ? 2 : 0.05, y: 0, z: 0), quat: q))
+                t += 1.0 / 30
+            }
+        }
+        /// del giro a al b con la muñeca en movimiento.
+        mutating func sweep(from a: Quat, to b: Quat, seconds: Double = 0.5) {
+            let n = Int(seconds * 30)
+            for i in 0..<n {
+                let k = Double(i + 1) / Double(n)
+                let q = Quat(w: a.w + (b.w - a.w) * k, x: a.x + (b.x - a.x) * k, y: a.y + (b.y - a.y) * k, z: a.z + (b.z - a.z) * k)
+                let l = (q.w * q.w + q.x * q.x + q.y * q.y + q.z * q.z).squareRoot()
+                c.feed(MotionSample(t: t, gyro: Vec3(x: 1.5, y: 0, z: 0), quat: Quat(w: q.w / l, x: q.x / l, y: q.y / l, z: q.z / l)))
+                t += 1.0 / 30
+            }
+        }
+    }
+
+    func testFullCalibrationCapturesEachPoseByItself() throws {
+        var r = Rig()
+        let n = tilt(Vec3(x: 0.3, y: 1, z: 0.2), 0.8)
+        r.hold(n, 1.0);                                          XCTAssertEqual(r.c.state, .running(.left), "el centro se fija solo")
+        r.sweep(from: n, to: n * tilt(ey, 0.35))
+        r.hold(n * tilt(ey, 0.35), 0.7);                         XCTAssertEqual(r.c.state, .running(.up))
+        r.sweep(from: n * tilt(ey, 0.35), to: n)
+        r.hold(n, 0.4)
+        r.sweep(from: n, to: n * tilt(ex, -0.4))
+        r.hold(n * tilt(ex, -0.4), 0.7);                         XCTAssertEqual(r.c.state, .done)
+        let m = try XCTUnwrap(r.c.mapping)
+        XCTAssertEqual(m.point(for: n * tilt(ey, 0.35)).x, -1, accuracy: 0.02)
+        XCTAssertEqual(m.point(for: n * tilt(ex, -0.4)).y, 1, accuracy: 0.02)
+        XCTAssertEqual(m.point(for: n).x, 0, accuracy: 1e-6)
+    }
+
+    func testCenterNeedsTheWatchToBeStill() {
+        var r = Rig()
+        r.hold(.identity, 3.0, moving: true)
+        XCTAssertEqual(r.c.state, .running(.neutral))
+        XCTAssertLessThan(r.c.hold, 0.01)
+        r.hold(.identity, 0.5)
+        XCTAssertEqual(r.c.hold, 0.5 / AimCalibrator.neutralHold, accuracy: 0.1, "el avance sigue al tiempo quieto")
+    }
+
+    func testPassingThroughAPoseWithoutStoppingDoesNotCapture() {
+        var r = Rig()
+        r.hold(.identity, 1.0)
+        r.sweep(from: .identity, to: tilt(ey, 0.5), seconds: 1.0)          // sin parar
+        XCTAssertEqual(r.c.state, .running(.left))
+        r.hold(tilt(ey, 0.5), 0.3)                                       // parar menos de medio segundo
+        XCTAssertEqual(r.c.state, .running(.left))
+        r.hold(tilt(ey, 0.5), 0.4)
+        XCTAssertEqual(r.c.state, .running(.up))
+    }
+
+    func testTheLeftPoseIsNotReusedForUp() {
+        var r = Rig()
+        r.hold(.identity, 1.0)
+        r.hold(tilt(ey, 0.4), 0.7)
+        XCTAssertEqual(r.c.state, .running(.up))
+        r.hold(tilt(ey, 0.4), 5.0)                                       // se queda ahi: no vuelve al centro
+        XCTAssertEqual(r.c.state, .running(.up), "sigue esperando el giro hacia arriba")
+    }
+
+    func testTooSmallATiltTimesOutAsTooLittleMovement() {
+        var r = Rig()
+        r.hold(.identity, 1.0)
+        r.hold(tilt(ey, 0.1), 16.0)
+        XCTAssertEqual(r.c.state, .failed(.tooLittleMovement))
+    }
+
+    func testNeverStopsInThePoseTimesOutAsNotStill() {
+        var r = Rig()
+        r.hold(.identity, 1.0)
+        r.hold(tilt(ey, 0.4), 16.0, moving: true)
+        XCTAssertEqual(r.c.state, .failed(.notStill))
+    }
+
+    func testTiltingTheSameWayTwiceFails() {
+        var r = Rig()
+        r.hold(.identity, 1.0)
+        r.hold(tilt(ey, 0.4), 0.7)
+        r.hold(.identity, 0.3)
+        r.hold(tilt(ey, 0.5), 0.7)
+        XCTAssertEqual(r.c.state, .failed(.sameDirection))
+        XCTAssertNil(r.c.mapping)
+    }
+
+    func testAngleAndHoldReportProgress() {
+        var r = Rig()
+        r.hold(.identity, 1.0)
+        r.hold(tilt(ey, 0.3), 0.25)
+        XCTAssertEqual(r.c.angle, 0.3, accuracy: 1e-6)
+        XCTAssertGreaterThan(r.c.hold, 0.2); XCTAssertLessThan(r.c.hold, 1)
+    }
+
+    func testFinishedStatesIgnoreMoreSamples() {
+        var r = Rig()
+        r.hold(.identity, 1.0); r.hold(tilt(ey, 0.4), 0.7); r.hold(.identity, 0.3); r.hold(tilt(ex, -0.4), 0.7)
+        XCTAssertEqual(r.c.state, .done)
+        let m = r.c.mapping
+        r.hold(tilt(ez, 1), 3)
+        XCTAssertEqual(r.c.state, .done); XCTAssertEqual(r.c.mapping, m)
     }
 }
 

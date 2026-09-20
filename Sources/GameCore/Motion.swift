@@ -1,10 +1,51 @@
 import Foundation
 
-public struct Vec3: Equatable, Sendable {
+public struct Vec3: Equatable, Codable, Sendable {
     public var x: Double, y: Double, z: Double
     public init(x: Double, y: Double, z: Double) { self.x = x; self.y = y; self.z = z }
     public var length: Double { (x * x + y * y + z * z).squareRoot() }
     public static let zero = Vec3(x: 0, y: 0, z: 0)
+
+    public func dot(_ o: Vec3) -> Double { x * o.x + y * o.y + z * o.z }
+    public static func + (a: Vec3, b: Vec3) -> Vec3 { Vec3(x: a.x + b.x, y: a.y + b.y, z: a.z + b.z) }
+    public static func - (a: Vec3, b: Vec3) -> Vec3 { Vec3(x: a.x - b.x, y: a.y - b.y, z: a.z - b.z) }
+    public static func * (a: Vec3, k: Double) -> Vec3 { Vec3(x: a.x * k, y: a.y * k, z: a.z * k) }
+    /// unitario; el vector nulo se queda como esta.
+    public var normalized: Vec3 { let l = length; return l > 1e-12 ? self * (1 / l) : self }
+}
+
+/// orientacion como cuaternion unitario (cmattitude.quaternion). a diferencia de los angulos de euler no depende de que
+/// eje sea cual ni tiene saltos en ±pi, asi que sirve igual con cualquier muñeca o lado de la corona.
+public struct Quat: Equatable, Codable, Sendable {
+    public var w: Double, x: Double, y: Double, z: Double
+    public init(w: Double, x: Double, y: Double, z: Double) { self.w = w; self.x = x; self.y = y; self.z = z }
+    public static let identity = Quat(w: 1, x: 0, y: 0, z: 0)
+
+    /// giro de `angle` radianes alrededor de `axis`.
+    public init(axis: Vec3, angle: Double) {
+        let a = axis.normalized, h = angle / 2
+        self.init(w: cos(h), x: a.x * sin(h), y: a.y * sin(h), z: a.z * sin(h))
+    }
+
+    public var conjugate: Quat { Quat(w: w, x: -x, y: -y, z: -z) }
+
+    public static func * (a: Quat, b: Quat) -> Quat {
+        Quat(w: a.w * b.w - a.x * b.x - a.y * b.y - a.z * b.z,
+             x: a.w * b.x + a.x * b.w + a.y * b.z - a.z * b.y,
+             y: a.w * b.y - a.x * b.z + a.y * b.w + a.z * b.x,
+             z: a.w * b.z + a.x * b.y - a.y * b.x + a.z * b.w)
+    }
+
+    /// el giro como vector: direccion = eje, longitud = angulo (rad, por el camino corto).
+    public var rotationVector: Vec3 {
+        let q = w < 0 ? Quat(w: -w, x: -x, y: -y, z: -z) : self
+        let s = (q.x * q.x + q.y * q.y + q.z * q.z).squareRoot()
+        guard s > 1e-12 else { return .zero }
+        return Vec3(x: q.x, y: q.y, z: q.z) * (2 * atan2(s, q.w) / s)
+    }
+
+    /// como se ve el giro de `self` a `other`, medido en los ejes de `self`.
+    public func rotation(to other: Quat) -> Vec3 { (conjugate * other).rotationVector }
 }
 
 /// orientacion del reloj en radianes (cmattitude).
@@ -24,8 +65,9 @@ public struct MotionSample: Equatable, Sendable {
     public var accel: Vec3
     public var gyro: Vec3
     public var attitude: Attitude
-    public init(t: Double, accel: Vec3 = .zero, gyro: Vec3 = .zero, attitude: Attitude = Attitude(roll: 0, pitch: 0, yaw: 0)) {
-        self.t = t; self.accel = accel; self.gyro = gyro; self.attitude = attitude
+    public var quat: Quat
+    public init(t: Double, accel: Vec3 = .zero, gyro: Vec3 = .zero, attitude: Attitude = Attitude(roll: 0, pitch: 0, yaw: 0), quat: Quat = .identity) {
+        self.t = t; self.accel = accel; self.gyro = gyro; self.attitude = attitude; self.quat = quat
     }
 }
 
@@ -107,38 +149,42 @@ public struct SwingDetector: Sendable {
     }
 }
 
-/// convierte la orientacion del reloj en un punto de mira. los ejes del reloj cambian segun la muñeca y el lado de la
-/// corona, asi que se aprenden con una calibracion: quieto, inclinar a la izquierda, inclinar hacia arriba.
+/// convierte la orientacion del reloj en un punto de mira. no asume que eje del reloj es "izquierda" o "arriba" (cambian
+/// con la muñeca y el lado de la corona): los aprende de una calibracion, como direcciones de giro respecto a la
+/// postura neutra.
 public struct AimMapping: Codable, Equatable, Sendable {
-    public var horizontal: Axis
-    public var horizontalSign: Double
-    public var horizontalRange: Double
-    public var vertical: Axis
-    public var verticalSign: Double
+    public var neutral: Quat
+    public var right: Vec3          // direccion de giro que mueve la mira a la derecha (unitaria)
+    public var up: Vec3             // direccion de giro que la mueve hacia arriba (unitaria, perpendicular a `right`)
+    public var horizontalRange: Double   // radianes de giro para llegar al borde
     public var verticalRange: Double
-    public var neutral: Attitude
 
-    static func wrap(_ a: Double) -> Double {
-        var d = a.truncatingRemainder(dividingBy: 2 * .pi)
-        if d > .pi { d -= 2 * .pi } else if d < -.pi { d += 2 * .pi }
-        return d
+    public static let minAngle = 0.17          // ~10 grados
+    public static let rangeLimits = 0.22...0.7
+    public static let minSeparation = 0.45     // seno del angulo minimo entre "izquierda" y "arriba" (~27 grados)
+
+    public init(neutral: Quat, right: Vec3, up: Vec3, horizontalRange: Double, verticalRange: Double) {
+        self.neutral = neutral; self.right = right; self.up = up
+        self.horizontalRange = horizontalRange; self.verticalRange = verticalRange
     }
 
-    /// nil si algun movimiento fue demasiado pequeño (< ~9 grados) o los dos usaron el mismo eje.
-    public static func calibrate(neutral: Attitude, left: Attitude, up: Attitude) -> AimMapping? {
-        func deltas(_ a: Attitude) -> [(Axis, Double)] { Axis.allCases.map { ($0, wrap(a.value($0) - neutral.value($0))) } }
-        guard let h = deltas(left).max(by: { abs($0.1) < abs($1.1) }), abs(h.1) >= 0.15 else { return nil }
-        guard let v = deltas(up).filter({ $0.0 != h.0 }).max(by: { abs($0.1) < abs($1.1) }), abs(v.1) >= 0.15 else { return nil }
-        // el alcance completo es el movimiento que hizo (entre 0.25 y 0.8 rad)
-        return AimMapping(horizontal: h.0, horizontalSign: h.1 > 0 ? -1 : 1, horizontalRange: min(0.8, max(0.25, abs(h.1))),
-                          vertical: v.0, verticalSign: v.1 > 0 ? 1 : -1, verticalRange: min(0.8, max(0.25, abs(v.1))), neutral: neutral)
+    public enum Failure: Error, Equatable, Sendable { case tooLittleMovement, sameDirection }
+
+    /// `left` y `up` son los giros medidos desde la postura neutra (`Quat.rotation(to:)`).
+    public static func calibrate(neutral: Quat, left: Vec3, up: Vec3) -> Result<AimMapping, Failure> {
+        guard left.length >= minAngle, up.length >= minAngle else { return .failure(.tooLittleMovement) }
+        let right = (left * -1).normalized
+        let vRaw = up - right * up.dot(right)      // lo que "arriba" tiene de distinto a "derecha"
+        guard vRaw.length / up.length >= minSeparation else { return .failure(.sameDirection) }
+        func clamp(_ v: Double) -> Double { min(rangeLimits.upperBound, max(rangeLimits.lowerBound, v)) }
+        return .success(AimMapping(neutral: neutral, right: right, up: vRaw.normalized,
+                                   horizontalRange: clamp(left.length), verticalRange: clamp(vRaw.length)))
     }
 
     /// x hacia la derecha, y hacia arriba, cada uno en -1...1.
-    public func point(for a: Attitude) -> Vec {
-        let dx = Self.wrap(a.value(horizontal) - neutral.value(horizontal)) * horizontalSign / horizontalRange
-        let dy = Self.wrap(a.value(vertical) - neutral.value(vertical)) * verticalSign / verticalRange
-        return Vec(x: min(1, max(-1, dx)), y: min(1, max(-1, dy)))
+    public func point(for q: Quat) -> Vec {
+        let r = neutral.rotation(to: q)
+        return Vec(x: min(1, max(-1, r.dot(right) / horizontalRange)), y: min(1, max(-1, r.dot(up) / verticalRange)))
     }
 }
 
@@ -153,7 +199,7 @@ public struct AimTracker: Sendable {
 
     @discardableResult
     public mutating func update(_ s: MotionSample) -> Vec {
-        let target = mapping.point(for: s.attitude)
+        let target = mapping.point(for: s.quat)
         if let last = lastT {
             let alpha = 1 - exp(-max(0, s.t - last) / tau)
             position = Vec(x: position.x + (target.x - position.x) * alpha, y: position.y + (target.y - position.y) * alpha)

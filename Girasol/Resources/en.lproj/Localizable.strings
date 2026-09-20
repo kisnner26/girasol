@@ -44,6 +44,7 @@
 "ahora no" = "not now";
 "ahora · %@" = "now · %@";
 "ajustes" = "settings";
+"al llegar a la postura, aguanta medio segundo sin moverte." = "once you reach the pose, hold half a second without moving.";
 "alertas de uv" = "uv alerts";
 "algo baja" = "a bit low";
 "alta en reposo" = "high at rest";
@@ -120,6 +121,7 @@
 "duración" = "duration";
 "día" = "day";
 "días" = "days";
+"el segundo giro tiene que ser hacia arriba, no otra vez hacia la izquierda." = "the second tilt has to go up, not left again.";
 "el uv ya bajó" = "the uv has dropped";
 "empezar" = "start";
 "empieza hoy" = "start today";
@@ -147,10 +149,12 @@
 "hora de tomar agua" = "time to drink water";
 "háptico" = "haptics";
 "idioma" = "language";
+"inclina la muñeca hacia la izquierda y quédate quieto." = "tilt your wrist to the left and hold still.";
 "inclina la muñeca hacia la izquierda, hasta donde apuntarías." = "tilt your wrist to the left, as far as you'd aim.";
 "inclina más la muñeca en cada paso." = "tilt your wrist more at each step.";
 "inhala" = "inhale";
 "inhala 4 · exhala 6" = "inhale 4 · exhale 6";
+"izquierda y arriba fueron iguales" = "left and up were the same";
 "juegos" = "games";
 "jugar tocando" = "play by touch";
 "lanza con la muñeca como un tiro normal: %lld de %lld" = "throw with your wrist like a normal shot: %lld of %lld";
@@ -161,6 +165,7 @@
 "leer de Salud" = "read from Health";
 "ligero" = "light";
 "listo" = "done";
+"llega hasta la marca de la barra" = "reach the mark on the bar";
 "llevas %lld %% de lo que tu piel tolera hoy. busca sombra." = "you're at %lld %% of what your skin tolerates today. find shade.";
 "llevas tiempo al sol sin protector. ponte uno o busca sombra." = "you've been in the sun a while without sunscreen. put some on or find shade.";
 "láser" = "laser";
@@ -204,6 +209,7 @@
 "necesito tu ubicación aproximada para saber el uv de donde estás" = "i need your approximate location to know the uv where you are";
 "no pude consultar el clima" = "couldn't get the weather";
 "no se notó el movimiento" = "the movement wasn't detected";
+"no te quedaste quieto" = "you didn't hold still";
 "noche" = "night";
 "normal" = "normal";
 "objetivo" = "goal";
@@ -251,6 +257,7 @@
 "reventadas · %lld" = "popped · %lld";
 "ritmo" = "rhythm";
 "ronda %lld/%lld" = "round %lld/%lld";
+"se fija solo" = "it sets itself";
 "se juegan con la muñeca" = "played with your wrist";
 "sedentario" = "sedentary";
 "sensación %@" = "feels like %@";
@@ -330,6 +337,7 @@
 "vibra al ritmo: sube al inhalar, baja al exhalar. funciona con la muñeca baja." = "vibrates with the rhythm: rises as you inhale, falls as you exhale. works with your wrist down.";
 "volver" = "back";
 "vuelve al centro e inclina hacia arriba." = "go back to center and tilt upward.";
+"vuelve al centro, inclina hacia arriba y quédate quieto." = "go back to center, tilt upward and hold still.";
 "ya me lo reapliqué" = "i've reapplied it";
 "¡diana! 50" = "bullseye! 50";
 "¡el aro!" = "the rim!";

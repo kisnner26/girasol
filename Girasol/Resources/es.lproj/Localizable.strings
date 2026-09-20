@@ -44,6 +44,7 @@
 "ahora no" = "ahora no";
 "ahora · %@" = "ahora · %@";
 "ajustes" = "ajustes";
+"al llegar a la postura, aguanta medio segundo sin moverte." = "al llegar a la postura, aguanta medio segundo sin moverte.";
 "alertas de uv" = "alertas de uv";
 "algo baja" = "algo baja";
 "alta en reposo" = "alta en reposo";
@@ -120,6 +121,7 @@
 "duración" = "duración";
 "día" = "día";
 "días" = "días";
+"el segundo giro tiene que ser hacia arriba, no otra vez hacia la izquierda." = "el segundo giro tiene que ser hacia arriba, no otra vez hacia la izquierda.";
 "el uv ya bajó" = "el uv ya bajó";
 "empezar" = "empezar";
 "empieza hoy" = "empieza hoy";
@@ -147,10 +149,12 @@
 "hora de tomar agua" = "hora de tomar agua";
 "háptico" = "háptico";
 "idioma" = "idioma";
+"inclina la muñeca hacia la izquierda y quédate quieto." = "inclina la muñeca hacia la izquierda y quédate quieto.";
 "inclina la muñeca hacia la izquierda, hasta donde apuntarías." = "inclina la muñeca hacia la izquierda, hasta donde apuntarías.";
 "inclina más la muñeca en cada paso." = "inclina más la muñeca en cada paso.";
 "inhala" = "inhala";
 "inhala 4 · exhala 6" = "inhala 4 · exhala 6";
+"izquierda y arriba fueron iguales" = "izquierda y arriba fueron iguales";
 "juegos" = "juegos";
 "jugar tocando" = "jugar tocando";
 "lanza con la muñeca como un tiro normal: %lld de %lld" = "lanza con la muñeca como un tiro normal: %lld de %lld";
@@ -161,6 +165,7 @@
 "leer de Salud" = "leer de Salud";
 "ligero" = "ligero";
 "listo" = "listo";
+"llega hasta la marca de la barra" = "llega hasta la marca de la barra";
 "llevas %lld %% de lo que tu piel tolera hoy. busca sombra." = "llevas %lld %% de lo que tu piel tolera hoy. busca sombra.";
 "llevas tiempo al sol sin protector. ponte uno o busca sombra." = "llevas tiempo al sol sin protector. ponte uno o busca sombra.";
 "láser" = "láser";
@@ -204,6 +209,7 @@
 "necesito tu ubicación aproximada para saber el uv de donde estás" = "necesito tu ubicación aproximada para saber el uv de donde estás";
 "no pude consultar el clima" = "no pude consultar el clima";
 "no se notó el movimiento" = "no se notó el movimiento";
+"no te quedaste quieto" = "no te quedaste quieto";
 "noche" = "noche";
 "normal" = "normal";
 "objetivo" = "objetivo";
@@ -251,6 +257,7 @@
 "reventadas · %lld" = "reventadas · %lld";
 "ritmo" = "ritmo";
 "ronda %lld/%lld" = "ronda %lld/%lld";
+"se fija solo" = "se fija solo";
 "se juegan con la muñeca" = "se juegan con la muñeca";
 "sedentario" = "sedentario";
 "sensación %@" = "sensación %@";
@@ -330,6 +337,7 @@
 "vibra al ritmo: sube al inhalar, baja al exhalar. funciona con la muñeca baja." = "vibra al ritmo: sube al inhalar, baja al exhalar. funciona con la muñeca baja.";
 "volver" = "volver";
 "vuelve al centro e inclina hacia arriba." = "vuelve al centro e inclina hacia arriba.";
+"vuelve al centro, inclina hacia arriba y quédate quieto." = "vuelve al centro, inclina hacia arriba y quédate quieto.";
 "ya me lo reapliqué" = "ya me lo reapliqué";
 "¡diana! 50" = "¡diana! 50";
 "¡el aro!" = "¡el aro!";

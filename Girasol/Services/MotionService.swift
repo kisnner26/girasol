@@ -27,7 +27,8 @@ final class MotionService {
                 t: m.timestamp,
                 accel: Vec3(x: m.userAcceleration.x, y: m.userAcceleration.y, z: m.userAcceleration.z),
                 gyro: Vec3(x: m.rotationRate.x, y: m.rotationRate.y, z: m.rotationRate.z),
-                attitude: Attitude(roll: m.attitude.roll, pitch: m.attitude.pitch, yaw: m.attitude.yaw))
+                attitude: Attitude(roll: m.attitude.roll, pitch: m.attitude.pitch, yaw: m.attitude.yaw),
+                quat: Quat(w: m.attitude.quaternion.w, x: m.attitude.quaternion.x, y: m.attitude.quaternion.y, z: m.attitude.quaternion.z))
             MainActor.assumeIsolated {
                 self?.latest = s
                 self?.handler?(s)
