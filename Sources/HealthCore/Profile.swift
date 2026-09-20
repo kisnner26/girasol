@@ -1,13 +1,14 @@
 import Foundation
+import Localization
 
 public enum Sex: String, Codable, CaseIterable, Sendable {
     case female, male, other
-    public var title: String { switch self { case .female: "mujer"; case .male: "hombre"; case .other: "prefiero no decir" } }
+    public var title: String { switch self { case .female: L10n.tr("mujer"); case .male: L10n.tr("hombre"); case .other: L10n.tr("prefiero no decir") } }
 }
 
 public enum Objective: String, Codable, CaseIterable, Sendable {
     case lose, maintain, gain
-    public var title: String { switch self { case .lose: "bajar de peso"; case .maintain: "mantener"; case .gain: "subir de peso" } }
+    public var title: String { switch self { case .lose: L10n.tr("bajar de peso"); case .maintain: L10n.tr("mantener"); case .gain: L10n.tr("subir de peso") } }
 }
 
 public enum ActivityLevel: String, Codable, CaseIterable, Sendable {
@@ -15,18 +16,18 @@ public enum ActivityLevel: String, Codable, CaseIterable, Sendable {
     public var factor: Double { switch self { case .sedentary: 1.2; case .light: 1.375; case .moderate: 1.55; case .active: 1.725; case .veryActive: 1.9 } }
     public var title: String {
         switch self {
-        case .sedentary: "sedentario"
-        case .light: "ligero"
-        case .moderate: "moderado"
-        case .active: "activo"
-        case .veryActive: "muy activo"
+        case .sedentary: L10n.tr("sedentario")
+        case .light: L10n.tr("ligero")
+        case .moderate: L10n.tr("moderado")
+        case .active: L10n.tr("activo")
+        case .veryActive: L10n.tr("muy activo")
         }
     }
 }
 
 public enum VolumeUnit: String, Codable, CaseIterable, Sendable {
     case ml, oz
-    public var title: String { self == .ml ? "mililitros" : "onzas" }
+    public var title: String { self == .ml ? L10n.tr("mililitros") : L10n.tr("onzas") }
     /// texto de un volumen en ml en la unidad elegida.
     public func text(ml: Int) -> String {
         switch self {
@@ -141,9 +142,9 @@ public enum Greeting {
     public static func text(hour: Int, name: String) -> String {
         let base: String
         switch hour {
-        case 5..<12: base = "buenos días"
-        case 12..<19: base = "buenas tardes"
-        default: base = "buenas noches"
+        case 5..<12: base = L10n.tr("buenos días")
+        case 12..<19: base = L10n.tr("buenas tardes")
+        default: base = L10n.tr("buenas noches")
         }
         let n = name.trimmingCharacters(in: .whitespacesAndNewlines)
         return n.isEmpty ? base : "\(base), \(n)"

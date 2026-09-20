@@ -1,4 +1,5 @@
 import Foundation
+import Localization
 
 public struct BreathingPattern: Sendable, Equatable {
     public let id: String
@@ -12,9 +13,9 @@ public struct BreathingPattern: Sendable, Equatable {
     public var cycle: Double { inhale + holdIn + exhale + holdOut }
 
     public static let all: [BreathingPattern] = [
-        .init(id: "calm", title: "suave", detail: "inhala 4 · exhala 6", inhale: 4, holdIn: 0, exhale: 6, holdOut: 0),
-        .init(id: "box", title: "caja", detail: "4 · 4 · 4 · 4", inhale: 4, holdIn: 4, exhale: 4, holdOut: 4),
-        .init(id: "sleep", title: "para dormir", detail: "4 · 7 · 8", inhale: 4, holdIn: 7, exhale: 8, holdOut: 0),
+        .init(id: "calm", title: L10n.tr("suave"), detail: L10n.tr("inhala 4 · exhala 6"), inhale: 4, holdIn: 0, exhale: 6, holdOut: 0),
+        .init(id: "box", title: L10n.tr("caja"), detail: "4 · 4 · 4 · 4", inhale: 4, holdIn: 4, exhale: 4, holdOut: 4),
+        .init(id: "sleep", title: L10n.tr("para dormir"), detail: "4 · 7 · 8", inhale: 4, holdIn: 7, exhale: 8, holdOut: 0),
     ]
 
     public static func pattern(id: String) -> BreathingPattern {
@@ -26,7 +27,7 @@ public enum BreathPhase: Sendable, Equatable {
     case inhale, holdIn, exhale, holdOut
 
     public var label: String {
-        switch self { case .inhale: "inhala"; case .holdIn: "sostén"; case .exhale: "exhala"; case .holdOut: "pausa" }
+        switch self { case .inhale: L10n.tr("inhala"); case .holdIn: L10n.tr("sostén"); case .exhale: L10n.tr("exhala"); case .holdOut: L10n.tr("pausa") }
     }
 }
 

@@ -12,6 +12,7 @@ struct DartsView: View {
     @State private var stuck: [(p: CGPoint, score: Int)] = []
     @State private var popups: [Popup] = []
     @State private var particles: [Particle] = []
+    @State private var away = AwayMonitor()
     @State private var touchAim = Vec(x: 0, y: 0)
     @State private var boardSize = CGSize(width: 200, height: 240)
     @AppStorage("girasol.best.darts") private var best = 0
@@ -31,6 +32,7 @@ struct DartsView: View {
                         .padding(.horizontal, 30).frame(maxHeight: .infinity, alignment: .bottom).padding(.bottom, 3)
                 }
                 overlay
+                AwayBanner(monitor: away)
             }
             .onAppear { boardSize = geo.size }
             .gameLoop { advance($0) }
@@ -65,7 +67,7 @@ struct DartsView: View {
                 .allowsHitTesting(false)
         } else if !running {
             GameOverlay(title: finished ? "\(game.total) puntos" : "dardos",
-                        subtitle: finished ? String(format: "mejor %d · promedio %.1f por dardo", best, game.average)
+                        subtitle: finished ? "mejor \(best) · promedio \(String(format: "%.1f", game.average)) por dardo"
                                            : (settings.usesTouch ? "toca el tablero para tirar." : "apunta inclinando la mano y lanza con la muñeca.\nsi te tiembla el pulso, el dardo se dispersa."),
                         button: finished ? "otra vez" : "empezar") { begin() }
         }
@@ -82,6 +84,7 @@ struct DartsView: View {
         }
         game = Darts(seed: UInt64(Date().timeIntervalSince1970 * 1000))
         stuck = []; popups = []; particles = []; flying = nil
+        away.reset()
         running = true
         Haptics.play(.start)
         if !settings.usesTouch { startMotion() }
@@ -110,6 +113,7 @@ struct DartsView: View {
     }
 
     private func advance(_ now: Date) {
+        away.tick()
         guard running || flying != nil else { return }
         if let f = flying, now.timeIntervalSince(f.born) >= flightTime {
             landed(f)
@@ -125,11 +129,12 @@ struct DartsView: View {
         stuck.append((f.to, f.score))
         Sfx.shared.play(.thunk)
         switch f.score {
-        case 50: Haptics.play(.success); Sfx.shared.play(.ding); popups.append(Popup(text: "¡diana! 50", color: Palette.rose, born: Date(), big: true)); particles += Effects.burst(at: f.to, count: 14)
-        case 25: Haptics.play(.success); Sfx.shared.play(.ding); popups.append(Popup(text: "25", color: Palette.moss, born: Date(), big: true))
-        case 0: Haptics.play(.failure); popups.append(Popup(text: "fuera", color: Palette.rose, born: Date()))
+        case 50: Haptics.pattern([(.success, 0), (.success, 0.2), (.success, 0.2)]); away.note(loc("diana"), points: 50); Sfx.shared.play(.ding); popups.append(Popup(text: "¡diana! 50", color: Palette.rose, born: Date(), big: true)); particles += Effects.burst(at: f.to, count: 14)
+        case 25: Haptics.pattern([(.success, 0), (.success, 0.25)]); away.note("25", points: 25); Sfx.shared.play(.ding); popups.append(Popup(text: "25", color: Palette.moss, born: Date(), big: true))
+        case 0: Haptics.play(.failure); away.note(loc("fuera")); popups.append(Popup(text: "fuera", color: Palette.rose, born: Date()))
         default:
-            Haptics.play(.click)
+            Haptics.play(f.score >= 40 ? .directionUp : .click)
+            away.note("\(f.score)", points: f.score)
             popups.append(Popup(text: "\(f.score)", color: f.score >= 40 ? Palette.moss : Palette.ink, born: Date(), big: f.score >= 40))
             if f.score >= 40 { Sfx.shared.play(.ding); particles += Effects.burst(at: f.to, count: 8) }
         }
@@ -150,6 +155,7 @@ struct DartsView: View {
     private func boardRadius(_ s: CGSize) -> CGFloat { s.width * 0.40 }
 
     private func draw(_ ctx: inout GraphicsContext, _ size: CGSize, _ now: Date) {
+        away.drew()
         let c = boardCenter(size), R = boardRadius(size)
         let ink = GraphicsContext.Shading.color(Palette.ink)
         drawBoard(&ctx, c, R)

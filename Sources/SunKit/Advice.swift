@@ -1,4 +1,5 @@
 import Foundation
+import Localization
 
 public enum HeatLevel: Int, Comparable, Sendable {
     case cold, comfortable, warm, hot, danger
@@ -35,7 +36,7 @@ public enum Advisor {
         let heat = HeatLevel(apparent: apparent)
 
         if !isDay {
-            return Advice(level: .ok, headline: "es de noche", detail: "sin radiación uv ahora", heat: heat)
+            return Advice(level: .ok, headline: L10n.tr("es de noche"), detail: L10n.tr("sin radiación uv ahora"), heat: heat)
         }
 
         var level: AdviceLevel
@@ -43,31 +44,31 @@ public enum Advisor {
         var detail: String
         switch UVCategory(uvi: uvi) {
         case .low:
-            (level, headline, detail) = (.ok, "sin problema", "uv bajo, puedes salir")
+            (level, headline, detail) = (.ok, L10n.tr("sin problema"), L10n.tr("uv bajo, puedes salir"))
         case .moderate:
-            (level, headline, detail) = (.care, "con protección", "protector si vas a estar más de media hora")
+            (level, headline, detail) = (.care, L10n.tr("con protección"), L10n.tr("protector si vas a estar más de media hora"))
         case .high:
-            (level, headline, detail) = (.care, "con cuidado", "protector, sombrero y sombra cuando puedas")
+            (level, headline, detail) = (.care, L10n.tr("con cuidado"), L10n.tr("protector, sombrero y sombra cuando puedas"))
         case .veryHigh:
-            (level, headline, detail) = (.avoid, "mejor evitar", "uv muy alto, sal solo lo necesario")
+            (level, headline, detail) = (.avoid, L10n.tr("mejor evitar"), L10n.tr("uv muy alto, sal solo lo necesario"))
         case .extreme:
-            (level, headline, detail) = (.stay, "quédate en la sombra", "uv extremo, la piel se daña en minutos")
+            (level, headline, detail) = (.stay, L10n.tr("quédate en la sombra"), L10n.tr("uv extremo, la piel se daña en minutos"))
         }
 
         if usedFraction >= 1 {
-            (level, headline, detail) = (.stay, "límite superado", "tu piel ya recibió hoy lo que tolera: sombra")
+            (level, headline, detail) = (.stay, L10n.tr("límite superado"), L10n.tr("tu piel ya recibió hoy lo que tolera: sombra"))
         } else if usedFraction >= 0.8, level < .avoid {
-            (level, headline, detail) = (.avoid, "cerca de tu límite", "te queda poco margen hoy, busca sombra")
+            (level, headline, detail) = (.avoid, L10n.tr("cerca de tu límite"), L10n.tr("te queda poco margen hoy, busca sombra"))
         }
 
         switch heat {
         case .danger:
             level = max(level, .avoid)
-            detail += "; calor extremo, hidrátate"
+            detail += "; " + L10n.tr("calor extremo, hidrátate")
         case .hot:
-            detail += "; hace calor, hidrátate"
+            detail += "; " + L10n.tr("hace calor, hidrátate")
         case .cold:
-            detail += "; hace frío"
+            detail += "; " + L10n.tr("hace frío")
         default:
             break
         }

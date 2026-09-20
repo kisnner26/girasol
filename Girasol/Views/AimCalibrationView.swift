@@ -38,7 +38,7 @@ struct AimCalibrationView: View {
         .onDisappear { MotionService.shared.stop() }
     }
 
-    private func page(_ n: String, _ text: String, _ button: String, _ action: @escaping () -> Void) -> some View {
+    private func page(_ n: LocalizedStringKey, _ text: LocalizedStringKey, _ button: LocalizedStringKey, _ action: @escaping () -> Void) -> some View {
         VStack(spacing: 8) {
             Caption(n, color: Palette.mid)
             Text(text).font(.serif(13, italic: true)).foregroundStyle(Palette.ink).multilineTextAlignment(.center)

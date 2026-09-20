@@ -40,6 +40,7 @@ struct ExposureView: View {
                             .foregroundStyle(Palette.mid).multilineTextAlignment(.center)
                     }
                     if model.sunNow { Caption("✦ al sol ahora", color: Palette.ink) }
+                    SunscreenTimerView()
                 }
                 .padding(.horizontal, 6)
             } else {
@@ -51,9 +52,33 @@ struct ExposureView: View {
 
     private func status(_ stage: LimitStage) -> String {
         switch stage {
-        case .none: "dentro de lo seguro"
-        case .approaching: "cerca del límite"
-        case .reached: "límite superado"
+        case .none: loc("dentro de lo seguro")
+        case .approaching: loc("cerca del límite")
+        case .reached: loc("límite superado")
+        }
+    }
+}
+
+/// cuenta atras para reaplicar protector, o el boton para empezarla.
+struct SunscreenTimerView: View {
+    @Environment(AppModel.self) private var model
+
+    var body: some View {
+        VStack(spacing: 4) {
+            Hairline().padding(.vertical, 2)
+            TimelineView(.periodic(from: .now, by: 30)) { tl in
+                if let t = model.sunscreenTimer, t.isActive(at: tl.date) {
+                    VStack(spacing: 4) {
+                        Caption("reaplicar protector en")
+                        Text(minutesText(t.remaining(at: tl.date) / 60)).font(.serif(20, italic: true)).foregroundStyle(Palette.ink)
+                        Button("ya me lo reapliqué") { Task { await model.applySunscreen() } }.buttonStyle(QuietButtonStyle())
+                        Button("cancelar") { Task { await model.clearSunscreen() } }.buttonStyle(QuietButtonStyle())
+                    }
+                } else {
+                    Button("me puse protector") { Task { await model.applySunscreen() } }.buttonStyle(InkButtonStyle())
+                    Text("te aviso a las 2 h").font(.serif(10, italic: true)).foregroundStyle(Palette.mid)
+                }
+            }
         }
     }
 }

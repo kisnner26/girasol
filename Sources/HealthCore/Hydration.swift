@@ -1,4 +1,5 @@
 import Foundation
+import Localization
 
 public enum Hydration {
     /// meta orientativa: ~35 ml por kg, mas 300 ml si hace mucho calor. sin peso, 2000 ml. multiplo de 50.
@@ -34,8 +35,8 @@ public enum Hydration {
         var hour = wakeHour + everyHours
         while hour < sleepHour, out.count < 8 {
             if let d = calendar.date(bySettingHour: hour, minute: 0, second: 0, of: now), d > now.addingTimeInterval(60) {
-                out.append(.init(id: "girasol.water.\(hour)", date: d, title: "hora de tomar agua",
-                                 body: glassesLeft == 1 ? "te falta 1 vaso para tu meta de hoy." : "te faltan \(glassesLeft) vasos para tu meta de hoy."))
+                out.append(.init(id: "girasol.water.\(hour)", date: d, title: L10n.tr("hora de tomar agua"),
+                                 body: glassesLeft == 1 ? L10n.tr("te falta 1 vaso para tu meta de hoy.") : L10n.tr("te faltan %d vasos para tu meta de hoy.", glassesLeft)))
             }
             hour += everyHours
         }

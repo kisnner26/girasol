@@ -14,6 +14,7 @@ struct PistolView: View {
     @State private var touchAim = Vec(x: 0.5, y: 0.5)
     @State private var popups: [Popup] = []
     @State private var particles: [Particle] = []
+    @State private var away = AwayMonitor()
     @AppStorage("girasol.best.pistol") private var best = 0
     @AppStorage("girasol.pistol.laser") private var laser = false
     private let settings = MotionSettings.shared
@@ -36,6 +37,7 @@ struct PistolView: View {
                         .padding(.horizontal, 30).frame(maxHeight: .infinity, alignment: .bottom).padding(.bottom, 2)
                 }
                 overlay
+                AwayBanner(monitor: away)
             }
             .gameLoop { advance($0, geo.size) }
             .contentShape(Rectangle())
@@ -110,6 +112,7 @@ struct PistolView: View {
         game = Shooter(seed: UInt64(Date().timeIntervalSince1970 * 1000))
         shots = []; popups = []; particles = []
         clock.reset()
+        away.reset()
         finished = false
         running = true
         Haptics.play(.start)
@@ -126,23 +129,26 @@ struct PistolView: View {
         switch game.shoot(at: at) {
         case .hit(let kind):
             Sfx.shared.play(laser ? .pew : .bang)
-            if kind == .friend { Haptics.play(.failure); Sfx.shared.play(.buzz); popups.append(Popup(text: "−2", color: Palette.rose, born: Date(), big: true)) }
+            if kind == .friend { Haptics.pattern([(.failure, 0), (.failure, 0.2)]); away.note(loc("amigo"), points: -2); Sfx.shared.play(.buzz); popups.append(Popup(text: "−2", color: Palette.rose, born: Date(), big: true)) }
             else {
-                Haptics.play(.success); Sfx.shared.play(.hit)
+                Haptics.play(kind == .quick ? .directionUp : .success); Sfx.shared.play(.hit)
+                away.note(loc("blanco"), points: kind == .quick ? 3 : 1)
                 popups.append(Popup(text: kind == .quick ? "+3" : "+1", color: Palette.ink, born: Date(), big: kind == .quick))
                 particles += Effects.burst(at: CGPoint(x: at.x * 200, y: (1 - at.y) * 240), count: kind == .quick ? 10 : 6)
             }
             shots.append((at, Date(), true))
         case .miss:
             Sfx.shared.play(laser ? .pew : .bang); Haptics.play(.click)
+            away.note(loc("fallo"))
             shots.append((at, Date(), false))
         case .empty:
-            Sfx.shared.play(.empty); Haptics.play(.retry)
+            Sfx.shared.play(.empty); Haptics.play(.retry); away.note(loc("sin balas"))
         }
         popups.removeAll { Date().timeIntervalSince($0.born) > 1.2 }
     }
 
     private func advance(_ now: Date, _ size: CGSize) {
+        away.tick()
         guard running else { clock.reset(); return }
         let dt = clock.dt(now)
         game.step(dt: dt)
@@ -160,6 +166,7 @@ struct PistolView: View {
     // MARK: dibujo
 
     private func draw(_ ctx: inout GraphicsContext, _ size: CGSize, _ now: Date) {
+        away.drew()
         let w = size.width, h = size.height
         // retroceso: la escena da un tiron hacia abajo un instante
         let kick = flash.map { max(0, 1 - now.timeIntervalSince($0) / 0.12) * 5 } ?? 0

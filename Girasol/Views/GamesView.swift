@@ -28,16 +28,16 @@ struct GamesView: View {
         .keepAwake()
     }
 
-    private func row(_ icon: IconKind, _ title: String, _ detail: String) -> some View {
+    private func row(_ icon: IconKind, _ title: LocalizedStringKey, _ detail: LocalizedStringKey) -> some View {
         HomeRow(icon: icon, title: title, detail: detail)
     }
 }
 
 /// pantalla de inicio / fin comun a los juegos con tiempo.
 struct GameOverlay: View {
-    let title: String
-    let subtitle: String
-    let button: String
+    let title: LocalizedStringKey
+    let subtitle: LocalizedStringKey
+    let button: LocalizedStringKey
     let action: () -> Void
 
     var body: some View {
@@ -58,8 +58,8 @@ struct GameOverlay: View {
 
 /// puntaje y tiempo arriba, debajo del reloj del sistema.
 struct GameHUD: View {
-    let left: String
-    let right: String
+    let left: LocalizedStringKey
+    let right: LocalizedStringKey
     var body: some View {
         HStack {
             Caption(left, color: Palette.ink)

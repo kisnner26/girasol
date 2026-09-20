@@ -1,6 +1,7 @@
 name: Girasol
 options:
   bundleIdPrefix: com.kisnner26
+  developmentLanguage: en
   createIntermediateGroups: true
   deploymentTarget:
     watchOS: "10.0"
@@ -13,20 +14,28 @@ targets:
     platform: watchOS
     sources:
       - Girasol
+      - Shared
     dependencies:
+      - target: GirasolWidgets
       - package: SunKit
       - package: SunKit
         product: HealthCore
       - package: SunKit
         product: GameCore
+      - package: SunKit
+        product: Localization
     entitlements:
       path: Girasol/Girasol.entitlements
       properties:
         com.apple.developer.healthkit: true
+        keychain-access-groups:
+          - $(AppIdentifierPrefix)com.kisnner26.shared
     info:
       path: Girasol/Info.plist
       properties:
         CFBundleDisplayName: Girasol
+        CFBundleDevelopmentRegion: en
+        CFBundleLocalizations: [en, es]
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         WKApplication: true
@@ -34,10 +43,10 @@ targets:
         WKBackgroundModes:
           - mindfulness
           - workout-processing
-        NSMotionUsageDescription: Girasol usa los sensores de movimiento del reloj para que los juegos reconozcan tus gestos de muñeca.
-        NSHealthShareUsageDescription: Girasol lee tus minutos al aire libre, agua, calorías, pasos, pulso, oxígeno en sangre y datos corporales para mostrarte tu día y calcular tus metas.
-        NSHealthUpdateUsageDescription: Girasol guarda en Salud el agua y las calorías que registras y tus minutos de respiración.
-        NSLocationWhenInUseUsageDescription: Girasol usa tu ubicación aproximada para consultar el índice uv y la temperatura de donde estás.
+        NSMotionUsageDescription: Girasol uses the watch's motion sensors so the games can recognize your wrist gestures.
+        NSHealthShareUsageDescription: Girasol reads your outdoor minutes, water, calories, steps, heart rate, blood oxygen, sleep and body data to show your day and work out your goals.
+        NSHealthUpdateUsageDescription: Girasol saves the water and calories you log and your breathing minutes to Health.
+        NSLocationWhenInUseUsageDescription: Girasol uses your approximate location to look up the uv index and temperature where you are.
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.kisnner26.girasol
@@ -48,6 +57,36 @@ targets:
         GENERATE_INFOPLIST_FILE: NO
         CODE_SIGN_STYLE: Automatic
         ENABLE_PREVIEWS: YES
+  GirasolWidgets:
+    type: app-extension
+    platform: watchOS
+    sources:
+      - GirasolWidgets
+      - Shared
+    entitlements:
+      path: GirasolWidgets/GirasolWidgets.entitlements
+      properties:
+        keychain-access-groups:
+          - $(AppIdentifierPrefix)com.kisnner26.shared
+    info:
+      path: GirasolWidgets/Info.plist
+      properties:
+        CFBundleDisplayName: Girasol
+        CFBundleDevelopmentRegion: en
+        CFBundleLocalizations: [en, es]
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.kisnner26.girasol.widgets
+        SWIFT_VERSION: "5.0"
+        MARKETING_VERSION: "0.1.0"
+        CURRENT_PROJECT_VERSION: "1"
+        GENERATE_INFOPLIST_FILE: NO
+        CODE_SIGN_STYLE: Automatic
+        SKIP_INSTALL: YES
 schemes:
   Girasol:
     build:

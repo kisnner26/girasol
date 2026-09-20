@@ -13,6 +13,9 @@ final class HealthModel {
     var heart = HeartInfo()
     var oxygen: [OxygenReading] = []
     var loaded = false
+    var history: [DayRecord] = HabitStore.shared.records
+    var nights: [SleepNight] = []
+    var sleepInsight: SleepInsight?
 
     var profile: Profile { profiles.profile }
     var now: Date { Date() }
@@ -34,12 +37,40 @@ final class HealthModel {
         heart = await health.heart()
         oxygen = await health.oxygen()
         loaded = true
+        syncWidgets()
+        await refreshHabits()
         await scheduleWaterReminders()
+    }
+
+    /// racha y sueño: ultimos 7 dias de Salud.
+    func refreshHabits() async {
+        let today = now
+        async let w = health.dailyWater(days: 7, now: today)
+        async let s = health.dailySteps(days: 7, now: today)
+        async let segments = health.sleep(days: 8, now: today)
+        let (water, steps, sleep) = await (w, s, segments)
+        HabitStore.shared.merge(water: water, steps: steps, profile: profile)
+        history = HabitStore.shared.records
+
+        nights = Sleep.nights(sleep, today: today)
+        sleepInsight = SleepInsight.make(nights.compactMap { n in
+            guard let day = Calendar.current.date(bySettingHour: 0, minute: 0, second: 0, of: n.day) else { return nil }
+            return (n, water[day] ?? 0, steps[day] ?? 0)
+        })
+    }
+
+    var streak: Int { Streaks.current(history, today: now) }
+    var bestStreak: Int { Streaks.best(history) }
+    var lastNight: SleepNight? { nights.last(where: { $0.hours > 0 }) }
+
+    private func syncWidgets() {
+        WidgetSync.totals(totals, profile: profile, kcalRemaining: kcalRemaining)
     }
 
     func addWater(_ ml: Int) async {
         guard await health.addWater(ml: ml) else { return }
         totals.waterMl += ml
+        syncWidgets()
         Haptics.play(.success)
         await scheduleWaterReminders()
     }
@@ -53,6 +84,7 @@ final class HealthModel {
     func addFood(_ kcal: Int) async {
         guard await health.addFood(kcal: Double(kcal)) else { return }
         totals.foodKcal += Double(kcal)
+        syncWidgets()
         Haptics.play(.success)
     }
 

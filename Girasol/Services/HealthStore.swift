@@ -46,7 +46,8 @@ final class HealthStore: @unchecked Sendable {
          HKQuantityType(.timeInDaylight), HKQuantityType(.activeEnergyBurned), HKQuantityType(.stepCount),
          HKQuantityType(.heartRate), HKQuantityType(.restingHeartRate), HKQuantityType(.oxygenSaturation),
          HKQuantityType(.bodyMass), HKQuantityType(.height),
-         HKCharacteristicType(.dateOfBirth), HKCharacteristicType(.biologicalSex)]
+         HKCharacteristicType(.dateOfBirth), HKCharacteristicType(.biologicalSex),
+         HKCategoryType(.sleepAnalysis)]
     }
 
     private let ml = HKUnit.literUnit(with: .milli)
@@ -97,6 +98,50 @@ final class HealthStore: @unchecked Sendable {
             let q = HKSampleQuery(sampleType: mindful, predicate: HKQuery.predicateForSamples(withStart: start, end: nil),
                                   limit: HKObjectQueryNoLimit, sortDescriptors: nil) { _, samples, _ in
                 c.resume(returning: (samples ?? []).reduce(0) { $0 + $1.endDate.timeIntervalSince($1.startDate) / 60 })
+            }
+            store.execute(q)
+        }
+    }
+
+    /// total por dia de los ultimos `days` dias (el de hoy incluido), por inicio de dia.
+    func daily(_ type: HKQuantityType, _ unit: HKUnit, days: Int, now: Date) async -> [Date: Double] {
+        guard isAvailable else { return [:] }
+        let cal = Calendar.current
+        let end = now
+        guard let start = cal.date(byAdding: .day, value: -(days - 1), to: cal.startOfDay(for: now)) else { return [:] }
+        return await withCheckedContinuation { c in
+            let q = HKStatisticsCollectionQuery(quantityType: type, quantitySamplePredicate: HKQuery.predicateForSamples(withStart: start, end: end),
+                                                options: .cumulativeSum, anchorDate: start, intervalComponents: DateComponents(day: 1))
+            q.initialResultsHandler = { _, results, _ in
+                var out: [Date: Double] = [:]
+                results?.enumerateStatistics(from: start, to: end) { stat, _ in
+                    out[stat.startDate] = stat.sumQuantity()?.doubleValue(for: unit) ?? 0
+                }
+                c.resume(returning: out)
+            }
+            store.execute(q)
+        }
+    }
+
+    func dailyWater(days: Int, now: Date) async -> [Date: Int] {
+        await daily(water, ml, days: days, now: now).mapValues { Int($0.rounded()) }
+    }
+
+    func dailySteps(days: Int, now: Date) async -> [Date: Int] {
+        await daily(HKQuantityType(.stepCount), .count(), days: days, now: now).mapValues { Int($0.rounded()) }
+    }
+
+    /// tramos dormidos de los ultimos `days` dias (no cuenta "en cama" ni "despierto").
+    func sleep(days: Int, now: Date) async -> [SleepSegment] {
+        guard isAvailable, let from = Calendar.current.date(byAdding: .day, value: -days, to: Calendar.current.startOfDay(for: now)) else { return [] }
+        let asleep: Set<Int> = [HKCategoryValueSleepAnalysis.asleepUnspecified.rawValue, HKCategoryValueSleepAnalysis.asleepCore.rawValue,
+                                HKCategoryValueSleepAnalysis.asleepDeep.rawValue, HKCategoryValueSleepAnalysis.asleepREM.rawValue]
+        return await withCheckedContinuation { c in
+            let q = HKSampleQuery(sampleType: HKCategoryType(.sleepAnalysis), predicate: HKQuery.predicateForSamples(withStart: from, end: nil),
+                                  limit: HKObjectQueryNoLimit, sortDescriptors: nil) { _, samples, _ in
+                let segs = (samples as? [HKCategorySample] ?? []).filter { asleep.contains($0.value) }
+                    .map { SleepSegment(start: $0.startDate, end: $0.endDate) }
+                c.resume(returning: segs)
             }
             store.execute(q)
         }

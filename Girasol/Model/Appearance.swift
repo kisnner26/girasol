@@ -3,7 +3,7 @@ import Observation
 
 enum ThemeChoice: String, CaseIterable {
     case paper, night
-    var title: String { self == .paper ? "papel" : "noche" }
+    var title: String { self == .paper ? loc("papel") : loc("noche") }
 }
 
 /// tema elegido. es un singleton observable para que `Palette` cambie los colores de toda la interfaz.

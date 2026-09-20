@@ -1,3 +1,4 @@
+import Localization
 import SwiftUI
 import WatchKit
 
@@ -6,6 +7,11 @@ struct GirasolApp: App {
     @State private var model = AppModel()
     @State private var health = HealthModel()
     @State private var runner = BreathingRunner()
+
+    init() {
+        // los paquetes escriben en español; la app les pone la traduccion segun el idioma del reloj
+        L10n.translate = { Lang.bundle.localizedString(forKey: $0, value: $0, table: nil) }
+    }
 
     var body: some Scene {
         WindowGroup {

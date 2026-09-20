@@ -49,8 +49,8 @@ struct TodayView: View {
     }
 
     private func summary(_ o: DayOutlook) -> String {
-        if let h = o.high { return "evita de \(h.startHour) a \(h.endHour) h" }
-        if let m = o.moderate { return "uv moderado de \(m.startHour) a \(m.endHour) h" }
-        return "uv bajo todo el día"
+        if let h = o.high { return loc("evita de \(h.startHour) a \(h.endHour) h") }
+        if let m = o.moderate { return loc("uv moderado de \(m.startHour) a \(m.endHour) h") }
+        return loc("uv bajo todo el día")
     }
 }

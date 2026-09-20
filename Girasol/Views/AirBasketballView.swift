@@ -11,6 +11,7 @@ struct AirBasketballView: View {
     @State private var clock = FrameClock()
     @State private var popups: [Popup] = []
     @State private var particles: [Particle] = []
+    @State private var away = AwayMonitor()
     @State private var lastPhase = AirBasketball.Phase.aiming
     @State private var lastSize = CGSize(width: 200, height: 240)
     @AppStorage("girasol.best.airbasket") private var best = 0
@@ -31,6 +32,7 @@ struct AirBasketballView: View {
                         .padding(.horizontal, 30).frame(maxHeight: .infinity, alignment: .bottom).padding(.bottom, 4)
                 }
                 overlay
+                AwayBanner(monitor: away)
             }
             .gameLoop { advance($0, geo.size) }
             .contentShape(Rectangle())
@@ -65,6 +67,7 @@ struct AirBasketballView: View {
 
     private func begin() {
         clock.reset()
+        away.reset()
         finished = false
         if !settings.usesTouch && !settings.basketPower.isReady {
             practicing = true
@@ -104,6 +107,7 @@ struct AirBasketballView: View {
     }
 
     private func advance(_ now: Date, _ size: CGSize) {
+        away.tick()
         lastSize = size
         guard running else { clock.reset(); return }
         let dt = clock.dt(now)
@@ -127,23 +131,35 @@ struct AirBasketballView: View {
         let hoop = CGPoint(x: size.width / 2, y: size.height * 0.32)
         switch o {
         case .swish:
-            Sfx.shared.play(.swish); Sfx.shared.play(.ding); Haptics.play(.success)
+            Sfx.shared.play(.swish); Sfx.shared.play(.ding); Haptics.pattern([(.success, 0), (.success, 0.25)])
+            away.note(loc("swish"), points: game.lastPoints)
             popups.append(Popup(text: "swish +\(game.lastPoints)", color: Palette.ink, born: Date(), big: true))
             particles += Effects.burst(at: hoop, count: 14)
         case .basket:
             Sfx.shared.play(.swish); Sfx.shared.play(.ding); Haptics.play(.success)
+            away.note(loc("canasta"), points: game.lastPoints)
             popups.append(Popup(text: "canasta +\(game.lastPoints)", color: Palette.moss, born: Date()))
             particles += Effects.burst(at: hoop, count: 9)
         case .rimIn:
-            Sfx.shared.play(.bounce); Sfx.shared.play(.swish); Haptics.play(.success)
+            Sfx.shared.play(.bounce); Sfx.shared.play(.swish); Haptics.pattern([(.click, 0), (.click, 0.12), (.success, 0.14)])
+            away.note(loc("de rebote"), points: game.lastPoints)
             popups.append(Popup(text: "de rebote +\(game.lastPoints)", color: Palette.olive, born: Date()))
             particles += Effects.burst(at: hoop, count: 8)
         case .rimOut:
-            Sfx.shared.play(.bounce); Haptics.play(.retry)
+            Sfx.shared.play(.bounce); Haptics.pattern([(.click, 0), (.click, 0.12), (.retry, 0.14)])
+            away.note(loc("aro"))
             popups.append(Popup(text: "¡el aro!", color: Palette.rose, born: Date()))
         case .short, .long, .left, .right:
-            Sfx.shared.play(.buzz); Haptics.play(.failure)
-            let text = ["short": "corto", "long": "largo", "left": "muy a la izquierda", "right": "muy a la derecha"]["\(o)"] ?? "fallo"
+            Sfx.shared.play(.buzz)
+            Haptics.play(o == .short ? .directionDown : o == .long ? .directionUp : .failure)
+            away.note(loc("fallo"))
+            let text: String.LocalizationValue = switch o {
+            case .short: "corto"
+            case .long: "largo"
+            case .left: "muy a la izquierda"
+            case .right: "muy a la derecha"
+            default: "fallo"
+            }
             popups.append(Popup(text: text, color: Palette.rose, born: Date()))
         }
         popups.removeAll { Date().timeIntervalSince($0.born) > 1.2 }
@@ -152,6 +168,7 @@ struct AirBasketballView: View {
     // MARK: dibujo
 
     private func draw(_ ctx: inout GraphicsContext, _ size: CGSize, _ now: Date) {
+        away.drew()
         let w = size.width, h = size.height
         let ink = GraphicsContext.Shading.color(Palette.ink)
         let faint = GraphicsContext.Shading.color(Palette.faint)

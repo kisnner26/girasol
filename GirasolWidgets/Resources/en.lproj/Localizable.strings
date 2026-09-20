@@ -1,0 +1,14 @@
+"abre girasol para cargar el clima" = "open girasol to load the weather";
+"agua" = "water";
+"comida" = "food";
+"cuánto has bebido hoy respecto a tu meta." = "how much you've drunk today against your goal.";
+"de %lld ml" = "of %lld ml";
+"el índice uv de ahora y la hora del pico." = "the uv index right now and the time of the peak.";
+"las calorías que te quedan hoy." = "the calories you have left today.";
+"pico %@" = "peak %@";
+"te quedan hoy" = "left today";
+"uv alto" = "high uv";
+"uv bajo" = "low uv";
+"uv extremo" = "extreme uv";
+"uv moderado" = "moderate uv";
+"uv muy alto" = "very high uv";

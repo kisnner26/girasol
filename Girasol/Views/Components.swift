@@ -95,8 +95,8 @@ struct Ring: View {
 /// fila de una lista: icono, rotulo en mayusculas, detalle en cursiva y una linea fina debajo.
 struct HomeRow: View {
     let icon: IconKind
-    let title: String
-    let detail: String
+    let title: LocalizedStringKey
+    let detail: LocalizedStringKey
 
     var body: some View {
         VStack(spacing: 0) {
@@ -138,7 +138,7 @@ struct QuietButtonStyle: ButtonStyle {
 
 func hourMinute(_ date: Date) -> String {
     var style = Date.FormatStyle(date: .omitted, time: .shortened)
-    style.locale = Locale(identifier: "es")
+    style.locale = Lang.locale
     return date.formatted(style)
 }
 
@@ -149,14 +149,14 @@ func numberText(_ v: Double) -> String { Int(v.rounded()).formatted() }
 /// sin dibujar la pildora oscura del TextField normal.
 struct NameField: View {
     @Binding var name: String
-    var title = "tu nombre"
+    var title: LocalizedStringKey = "tu nombre"
 
     var body: some View {
         TextFieldLink(prompt: Text("¿cómo te llamas?")) {
             VStack(alignment: .leading, spacing: 3) {
                 Caption(title)
                 HStack {
-                    Text(name.isEmpty ? "toca para escribir" : name)
+                    (name.isEmpty ? Text("toca para escribir") : Text(verbatim: name))
                         .font(.serif(16, italic: true))
                         .foregroundStyle(name.isEmpty ? Palette.mid : Palette.ink)
                     Spacer(minLength: 4)

@@ -16,9 +16,14 @@ final class Settings {
         didSet { defaults.set(alertsEnabled, forKey: "girasol.alerts") }
     }
 
+    var reapplyReminders: Bool {
+        didSet { defaults.set(reapplyReminders, forKey: "girasol.reapply") }
+    }
+
     init() {
         skin = SkinType(rawValue: defaults.integer(forKey: "girasol.skin")) ?? .iii
         sunscreen = Sunscreen(spf: defaults.integer(forKey: "girasol.spf"))
         alertsEnabled = defaults.object(forKey: "girasol.alerts") as? Bool ?? true
+        reapplyReminders = defaults.object(forKey: "girasol.reapply") as? Bool ?? true
     }
 }

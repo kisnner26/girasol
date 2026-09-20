@@ -10,6 +10,17 @@ enum Haptics {
         guard enabled else { return }
         WKInterfaceDevice.current().play(type)
     }
+
+    /// varios toques seguidos, cada uno con su espera en segundos desde el anterior: sirve para distinguir resultados sin mirar.
+    static func pattern(_ steps: [(WKHapticType, Double)]) {
+        guard enabled, !steps.isEmpty else { return }
+        Task { @MainActor in
+            for (type, wait) in steps {
+                if wait > 0 { try? await Task.sleep(for: .seconds(wait)) }
+                WKInterfaceDevice.current().play(type)
+            }
+        }
+    }
 }
 
 /// efectos de sonido sintetizados al vuelo (sin archivos). varios reproductores en rotacion para poder

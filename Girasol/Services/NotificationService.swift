@@ -47,6 +47,21 @@ final class NotificationService: NSObject, UNUserNotificationCenterDelegate {
         }
     }
 
+    /// aviso de reaplicar protector, `due` es cuando se cumplen las 2 h; sin fecha, lo quita.
+    func scheduleSunscreen(due: Date?, hasSunscreen: Bool) async {
+        center.removePendingNotificationRequests(withIdentifiers: ["girasol.sunscreen"])
+        guard let due, due > Date(), await requestAccess() else { return }
+        let content = UNMutableNotificationContent()
+        content.title = loc("reaplica el protector")
+        content.body = hasSunscreen ? loc("pasaron 2 horas desde la última vez. si sigues al sol, reaplícalo.")
+                                    : loc("llevas tiempo al sol sin protector. ponte uno o busca sombra.")
+        content.sound = .default
+        content.interruptionLevel = .timeSensitive
+        let interval = max(1, due.timeIntervalSinceNow)
+        try? await center.add(UNNotificationRequest(identifier: "girasol.sunscreen", content: content,
+                                                    trigger: UNTimeIntervalNotificationTrigger(timeInterval: interval, repeats: false)))
+    }
+
     func cancelAll() {
         center.removeAllPendingNotificationRequests()
     }
@@ -63,11 +78,11 @@ final class NotificationService: NSObject, UNUserNotificationCenterDelegate {
         content.sound = .default
         switch stage {
         case .approaching:
-            content.title = "cerca de tu límite de uv"
-            content.body = "llevas \(Int((fraction * 100).rounded())) % de lo que tu piel tolera hoy. busca sombra."
+            content.title = loc("cerca de tu límite de uv")
+            content.body = loc("llevas \(Int((fraction * 100).rounded())) % de lo que tu piel tolera hoy. busca sombra.")
         case .reached:
-            content.title = "límite de uv alcanzado"
-            content.body = "tu piel ya recibió hoy lo que tolera. sombra y protector."
+            content.title = loc("límite de uv alcanzado")
+            content.body = loc("tu piel ya recibió hoy lo que tolera. sombra y protector.")
         case .none:
             return
         }

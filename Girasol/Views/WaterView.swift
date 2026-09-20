@@ -54,7 +54,7 @@ struct WaterView: View {
                     Text(p.volumeUnit.text(ml: health.totals.waterMl)).font(.serif(21)).foregroundStyle(Palette.ink)
                         .minimumScaleFactor(0.7).lineLimit(1)
                     Text("de \(p.volumeUnit.text(ml: p.waterGoalMl))").font(.serif(11, italic: true)).foregroundStyle(Palette.mid)
-                    Caption(String(format: "≈ %.1f vasos", Hydration.glasses(ml: health.totals.waterMl, glassMl: p.glassMl)))
+                    Caption("≈ \(String(format: "%.1f", Hydration.glasses(ml: health.totals.waterMl, glassMl: p.glassMl))) vasos")
                 }
             }
             Hairline().padding(.vertical, 2)

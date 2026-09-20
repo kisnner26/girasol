@@ -1,4 +1,5 @@
 import Foundation
+import Localization
 
 public struct PlannedAlert: Sendable, Equatable {
     public let id: String
@@ -30,9 +31,9 @@ public enum AlertPlanner {
                 guard hs[i].start > now else { continue }
                 let peak = hs[i...].prefix(3).map(\.uvIndex).max() ?? hs[i].uvIndex
                 let limit = Exposure.minutesToLimit(uvi: peak, usedFraction: 0, skin: skin, protection: protection)
-                let body = limit.map { "a este uv tu piel aguanta unos \(Int($0.rounded())) min. usa protector y busca sombra." }
-                    ?? "usa protector y busca sombra."
-                alerts.append(.init(id: "girasol.uv.\(t.key)", date: fire, title: "\(t.title) desde las \(clock(hs[i].start, timeZone))", body: body))
+                let body = limit.map { L10n.tr("a este uv tu piel aguanta unos %d min. usa protector y busca sombra.", Int($0.rounded())) }
+                    ?? L10n.tr("usa protector y busca sombra.")
+                alerts.append(.init(id: "girasol.uv.\(t.key)", date: fire, title: L10n.tr("%@ desde las %@", L10n.tr(t.title), clock(hs[i].start, timeZone)), body: body))
                 break
             }
         }
@@ -41,7 +42,7 @@ public enum AlertPlanner {
         if let peakIndex = hs.indices.max(by: { hs[$0].uvIndex < hs[$1].uvIndex }), hs[peakIndex].uvIndex >= 3,
            let back = hs[peakIndex...].first(where: { $0.uvIndex < 3 }), back.start > now {
             alerts.append(.init(id: "girasol.uv.down", date: max(back.start, now.addingTimeInterval(60)),
-                                title: "el uv ya bajó", body: "buen momento para salir, uv bajo desde las \(clock(back.start, timeZone))."))
+                                title: L10n.tr("el uv ya bajó"), body: L10n.tr("buen momento para salir, uv bajo desde las %@.", clock(back.start, timeZone))))
         }
         return alerts.sorted { $0.date < $1.date }
     }

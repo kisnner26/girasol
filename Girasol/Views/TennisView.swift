@@ -10,6 +10,7 @@ struct TennisView: View {
     @State private var clock = FrameClock()
     @State private var popups: [Popup] = []
     @State private var particles: [Particle] = []
+    @State private var away = AwayMonitor()
     @State private var swingAt: Date?
     @State private var lastPhase = Tennis.Phase.waiting
     @AppStorage("girasol.best.tennis") private var best = 0
@@ -21,7 +22,7 @@ struct TennisView: View {
                 TimelineView(.animation(minimumInterval: 1 / 60)) { tl in
                     Canvas { ctx, size in draw(&ctx, size, tl.date) }
                 }
-                GameHUD(left: "\(game.score) pts", right: lives)
+                GameHUD(left: "\(game.score) pts", right: LocalizedStringKey(lives))
                 if running && game.rally >= 2 {
                     Caption("\(game.rally) seguidas", color: Palette.rose).frame(maxHeight: .infinity, alignment: .top).padding(.top, 40)
                 }
@@ -29,6 +30,7 @@ struct TennisView: View {
                     MotionMeter(feed: feed, threshold: settings.threshold)
                         .padding(.horizontal, 30).frame(maxHeight: .infinity, alignment: .bottom).padding(.bottom, 3)
                 }
+                AwayBanner(monitor: away)
                 if !running {
                     GameOverlay(title: finished ? "\(game.score) puntos" : "tenis",
                                 subtitle: finished ? "mejor \(best) · racha máxima \(game.bestRally)"
@@ -53,6 +55,7 @@ struct TennisView: View {
         game = Tennis(seed: UInt64(Date().timeIntervalSince1970 * 1000))
         popups = []; particles = []
         clock.reset()
+        away.reset()
         lastPhase = .waiting
         finished = false
         running = true
@@ -67,17 +70,21 @@ struct TennisView: View {
         guard let r = game.swing() else { return }
         switch r {
         case .perfect:
-            Sfx.shared.play(.pok); Sfx.shared.play(.ding); Haptics.play(.success)
+            Sfx.shared.play(.pok); Sfx.shared.play(.ding); Haptics.pattern([(.success, 0), (.success, 0.2)])
+            away.note(loc("perfecto"), points: 2)
             popups.append(Popup(text: "perfecto +2", color: Palette.ink, born: Date(), big: true))
             particles += Effects.burst(at: CGPoint(x: 100, y: 190), count: 12)
         case .good:
             Sfx.shared.play(.pok); Haptics.play(.click)
+            away.note(loc("bien"), points: 1)
             popups.append(Popup(text: "bien +1", color: Palette.moss, born: Date()))
         case .early:
-            Sfx.shared.play(.buzz); Haptics.play(.failure)
+            Sfx.shared.play(.buzz); Haptics.play(.directionDown)
+            away.note(loc("pronto"))
             popups.append(Popup(text: "muy pronto", color: Palette.rose, born: Date()))
         case .late:
-            Sfx.shared.play(.buzz); Haptics.play(.failure)
+            Sfx.shared.play(.buzz); Haptics.play(.directionUp)
+            away.note(loc("tarde"))
             popups.append(Popup(text: "tarde", color: Palette.rose, born: Date()))
         case .miss:
             break
@@ -85,6 +92,7 @@ struct TennisView: View {
     }
 
     private func advance(_ now: Date) {
+        away.tick()
         guard running else { clock.reset(); return }
         let dt = clock.dt(now)
         game.step(dt: dt)
@@ -93,6 +101,7 @@ struct TennisView: View {
             // la pelota paso sin que la golpearas
             if lastPhase == .incoming && game.phase == .result && game.lastReturn == .miss {
                 Sfx.shared.play(.buzz); Haptics.play(.failure)
+                away.note(loc("fallaste"))
                 popups.append(Popup(text: "fallaste", color: Palette.rose, born: Date()))
             }
             lastPhase = game.phase
@@ -109,6 +118,7 @@ struct TennisView: View {
     // MARK: dibujo
 
     private func draw(_ ctx: inout GraphicsContext, _ size: CGSize, _ now: Date) {
+        away.drew()
         let w = size.width, h = size.height
         let vp = CGPoint(x: w / 2, y: h * 0.30)
 

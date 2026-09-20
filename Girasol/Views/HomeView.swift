@@ -4,7 +4,7 @@ import SunKit
 
 enum Route: Hashable {
     case sun, water, food, body, breathe, games, settings
-    case airBasketball, darts, pistol, tennis, bubbles, calibrate
+    case week, sleep, airBasketball, darts, pistol, tennis, bubbles, calibrate
 }
 
 struct HomeView: View {
@@ -18,7 +18,7 @@ struct HomeView: View {
                 Text(Greeting.text(hour: Calendar.current.component(.hour, from: Date()), name: p.displayName))
                     .font(.serif(16, italic: true)).foregroundStyle(Palette.ink)
                     .multilineTextAlignment(.center).lineLimit(2).minimumScaleFactor(0.8)
-                Caption(dayText)
+                Caption(verbatim: dayText)
 
                 ZStack {
                     Ring(fraction: health.waterFraction, tint: Palette.moss, width: 5).frame(width: 104, height: 104)
@@ -47,11 +47,17 @@ struct HomeView: View {
                 NavigationLink(value: Route.body) {
                     HomeRow(icon: .heart, title: "cuerpo", detail: bodyDetail)
                 }
+                NavigationLink(value: Route.week) {
+                    HomeRow(icon: .leaf, title: "racha", detail: health.streak == 0 ? "empieza hoy" : (health.streak == 1 ? "1 día seguido" : "\(health.streak) días seguidos"))
+                }
+                NavigationLink(value: Route.sleep) {
+                    HomeRow(icon: .breath, title: "sueño", detail: health.lastNight.map { LocalizedStringKey("\(String(format: "%.1f", $0.hours)) h anoche") } ?? "sin datos aún")
+                }
                 NavigationLink(value: Route.breathe) {
                     HomeRow(icon: .breath, title: "respirar", detail: breatheDetail)
                 }
                 NavigationLink(value: Route.games) {
-                    HomeRow(icon: .target, title: "juegos", detail: "baloncesto · tiro · pompas")
+                    HomeRow(icon: .target, title: "juegos", detail: "baloncesto · dardos · pistola · tenis")
                 }
                 NavigationLink(value: Route.settings) {
                     HomeRow(icon: .sliders, title: "ajustes", detail: "metas, tema, recordatorios")
@@ -72,24 +78,24 @@ struct HomeView: View {
 
     private var dayText: String {
         var s = Date.FormatStyle().weekday(.wide).day().month(.abbreviated)
-        s.locale = Locale(identifier: "es")
+        s.locale = Lang.locale
         return Date().formatted(s)
     }
 
-    private var sunDetail: String {
+    private var sunDetail: LocalizedStringKey {
         guard sun.weather != nil, let advice = sun.advice else { return "consultando…" }
         return "uv \(sun.uvNow.uvText) · \(advice.headline)"
     }
 
-    private var bodyDetail: String {
+    private var bodyDetail: LocalizedStringKey {
         var parts: [String] = []
         if let hr = health.heart.latest { parts.append("♥ \(Int(hr.rounded()))") }
         if let o = health.latestOxygen { parts.append("O₂ \(Int(o.percent.rounded())) %") }
-        parts.append("\(numberText(health.totals.steps)) pasos")
-        return parts.joined(separator: " · ")
+        parts.append(loc("\(numberText(health.totals.steps)) pasos"))
+        return LocalizedStringKey(parts.joined(separator: " · "))
     }
 
-    private var breatheDetail: String {
+    private var breatheDetail: LocalizedStringKey {
         let m = Int(health.totals.mindfulMinutes.rounded())
         return m > 0 ? "\(m) min hoy" : "1 minuto de calma"
     }

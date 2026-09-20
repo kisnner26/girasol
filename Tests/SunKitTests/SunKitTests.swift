@@ -295,3 +295,43 @@ final class OutlookTests: XCTestCase {
         XCTAssertEqual(o.high, .init(startHour: 11, endHour: 16))
     }
 }
+
+final class SunscreenReminderTests: XCTestCase {
+    private let t0 = Date(timeIntervalSince1970: 1_800_000_000)
+
+    func testTimerRunsForTwoHours() {
+        let t = SunscreenTimer(appliedAt: t0)
+        XCTAssertEqual(t.due, t0.addingTimeInterval(7200))
+        XCTAssertTrue(t.isActive(at: t0.addingTimeInterval(7199)))
+        XCTAssertFalse(t.isActive(at: t0.addingTimeInterval(7200)))
+        XCTAssertEqual(t.remaining(at: t0.addingTimeInterval(3600)), 3600)
+        XCTAssertEqual(t.remaining(at: t0.addingTimeInterval(9000)), 0)
+    }
+
+    func testStartsWhenAdviceAsksForProtectionAndYouAreOutside() {
+        XCTAssertTrue(SunscreenReminder.shouldStart(advice: .care, isDay: true, outdoorMinutesLastHour: 15, timer: nil, now: t0))
+        XCTAssertTrue(SunscreenReminder.shouldStart(advice: .stay, isDay: true, outdoorMinutesLastHour: 40, timer: nil, now: t0))
+    }
+
+    func testDoesNotStartWithoutAllConditions() {
+        XCTAssertFalse(SunscreenReminder.shouldStart(advice: .ok, isDay: true, outdoorMinutesLastHour: 40, timer: nil, now: t0), "uv bajo")
+        XCTAssertFalse(SunscreenReminder.shouldStart(advice: .care, isDay: false, outdoorMinutesLastHour: 40, timer: nil, now: t0), "de noche")
+        XCTAssertFalse(SunscreenReminder.shouldStart(advice: .care, isDay: true, outdoorMinutesLastHour: 14.9, timer: nil, now: t0), "poco tiempo fuera")
+    }
+
+    func testDoesNotRestartWhileOneIsRunningButDoesAfterItExpires() {
+        let running = SunscreenTimer(appliedAt: t0.addingTimeInterval(-3600))
+        XCTAssertFalse(SunscreenReminder.shouldStart(advice: .care, isDay: true, outdoorMinutesLastHour: 30, timer: running, now: t0))
+        let expired = SunscreenTimer(appliedAt: t0.addingTimeInterval(-7200))
+        XCTAssertTrue(SunscreenReminder.shouldStart(advice: .care, isDay: true, outdoorMinutesLastHour: 30, timer: expired, now: t0))
+    }
+
+    func testOutdoorMinutesOfTheLastHourSplitAcrossBuckets() {
+        // son las 10:30: la ventana va de 09:30 a 10:30; 09:00 aporta media hora de su cubo, 10:00 otra media
+        let now = Date(timeIntervalSince1970: 1_800_000_000 + 1800)
+        let nine = now.addingTimeInterval(-5400), ten = now.addingTimeInterval(-1800)
+        XCTAssertEqual(SunscreenReminder.outdoorMinutes(lastHourOf: now, buckets: [nine: 40, ten: 20]), 20 + 10, accuracy: 1e-9)
+        XCTAssertEqual(SunscreenReminder.outdoorMinutes(lastHourOf: now, buckets: [:]), 0)
+        XCTAssertEqual(SunscreenReminder.outdoorMinutes(lastHourOf: now, buckets: [now.addingTimeInterval(-3 * 3600): 50]), 0, "fuera de la ventana")
+    }
+}

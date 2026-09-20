@@ -83,6 +83,14 @@ struct Popup: Identifiable {
     let color: Color
     let born: Date
     var big = false
+
+    /// el texto se traduce al crearlo: el dibujo del juego lo pinta tal cual.
+    init(text: String.LocalizationValue, color: Color, born: Date, big: Bool = false) {
+        self.text = loc(text)
+        self.color = color
+        self.born = born
+        self.big = big
+    }
 }
 
 struct Particle {
@@ -147,6 +155,59 @@ extension View {
                 tick(Date())
                 try? await Task.sleep(for: .milliseconds(16))
             }
+        }
+    }
+}
+
+/// avisa de lo que paso mientras la pantalla estuvo apagada: el reloj la apaga al girar la muñeca para lanzar,
+/// pero la partida sigue, asi que al volver a mirar se muestra un resumen.
+@MainActor
+@Observable
+final class AwayMonitor {
+    private(set) var summary: AwaySummary?
+    @ObservationIgnored private var tracker = AwayTracker()
+    @ObservationIgnored private var shownAt = 0.0
+
+    private var now: Double { Date.timeIntervalSinceReferenceDate }
+
+    /// se llama en cada fotograma que realmente se dibuja.
+    func drew() { tracker.drew(at: now) }
+
+    func note(_ label: String, points: Int = 0) { tracker.note(label, points: points, at: now) }
+
+    /// se llama con el reloj propio del juego, que sigue corriendo aunque no se dibuje.
+    func tick() {
+        if let s = tracker.tick(at: now) {
+            summary = s
+            shownAt = now
+            Haptics.play(.click)
+        } else if summary != nil, now - shownAt > 5 {
+            summary = nil
+        }
+    }
+
+    func reset() { tracker = AwayTracker(); summary = nil }
+}
+
+struct AwayBanner: View {
+    let monitor: AwayMonitor
+
+    var body: some View {
+        if let s = monitor.summary {
+            VStack(spacing: 3) {
+                Caption("mientras no mirabas")
+                Text(s.items.map { $0.count > 1 ? "\($0.count)× \($0.label)" : $0.label }.joined(separator: " · "))
+                    .font(.serif(13, italic: true)).foregroundStyle(Palette.ink).multilineTextAlignment(.center)
+                if s.points != 0 { Text("\(s.points > 0 ? "+" : "")\(s.points) pts").font(.serif(15)).foregroundStyle(Palette.moss) }
+            }
+            .padding(.horizontal, 12).padding(.vertical, 8)
+            .frame(maxWidth: .infinity)
+            .background(Palette.paper.opacity(0.94))
+            .overlay(alignment: .bottom) { Hairline() }
+            .frame(maxHeight: .infinity, alignment: .top)
+            .padding(.top, 20)
+            .allowsHitTesting(false)
+            .transition(.opacity)
         }
     }
 }

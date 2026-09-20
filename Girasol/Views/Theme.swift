@@ -37,12 +37,14 @@ extension Font {
 
 /// rotulo en mayusculas espaciadas, como las etiquetas de la pagina.
 struct Caption: View {
-    let text: String
+    private let text: Text
     var color: Color = Palette.mid
-    init(_ text: String, color: Color = Palette.mid) { self.text = text; self.color = color }
+    init(_ key: LocalizedStringKey, color: Color = Palette.mid) { text = Text(key); self.color = color }
+    /// para textos que ya vienen resueltos (numeros, horas, traducciones hechas en otro sitio).
+    init(verbatim: String, color: Color = Palette.mid) { text = Text(verbatim: verbatim); self.color = color }
 
     var body: some View {
-        Text(text.uppercased())
+        text.textCase(.uppercase)
             .font(.system(size: 9, weight: .regular, design: .serif))
             .tracking(1.6)
             .foregroundStyle(color)

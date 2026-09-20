@@ -46,7 +46,7 @@ struct BreatheView: View {
                           options: BreathingPattern.all.map { ($0.id, "\($0.title) · \($0.detail)") },
                           selection: $store.profile.breathingPattern)
                 ChoiceRow(title: "duración",
-                          options: [1, 2, 3, 5].map { ($0, $0 == 1 ? "1 minuto" : "\($0) minutos") },
+                          options: [1, 2, 3, 5].map { ($0, $0 == 1 ? loc("1 minuto") : loc("\($0) minutos")) },
                           selection: $store.profile.breathingMinutes)
                 Button("empezar") {
                     let p = health.profile
@@ -73,7 +73,7 @@ private struct SessionView: View {
                 BreathFlower(scale: m?.scale ?? 0)
                     .frame(width: 130, height: 130)
                 Text(m?.phase.label ?? "").font(.serif(20, italic: true)).foregroundStyle(Palette.ink)
-                Caption(remainingText(m?.remaining ?? 0))
+                Caption(verbatim: remainingText(m?.remaining ?? 0))
                 Button("terminar") { runner.finish(completed: false) }.buttonStyle(QuietButtonStyle())
             }
         }

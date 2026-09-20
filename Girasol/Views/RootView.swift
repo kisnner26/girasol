@@ -7,20 +7,22 @@ struct RootView: View {
     @Environment(HealthModel.self) private var health
     @Environment(\.scenePhase) private var phase
     @State private var splash = true
+    private let language = LanguageSettings.shared
 
     var body: some View {
         ZStack {
             Palette.paper.ignoresSafeArea()
             if health.profile.onboarded {
-                MainStack()
+                MainStack().id(language.choice)
             } else {
-                NavigationStack { OnboardingView() }
+                NavigationStack { OnboardingView() }.id(language.choice)
             }
             if splash {
                 SplashView().transition(.opacity)
             }
         }
         .environment(\.colorScheme, Appearance.shared.choice == .night ? .dark : .light)
+        .environment(\.locale, Lang.locale)
         .task {
             async let warm: () = refreshAll()
             try? await Task.sleep(for: .seconds(1.3))
@@ -58,6 +60,8 @@ struct MainStack: View {
                     case .breathe: BreatheView()
                     case .games: GamesView()
                     case .settings: SettingsView()
+                    case .week: WeekView()
+                    case .sleep: SleepView()
                     case .airBasketball: AirBasketballView()
                     case .darts: DartsView()
                     case .pistol: PistolView()

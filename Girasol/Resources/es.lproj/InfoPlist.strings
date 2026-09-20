@@ -1,0 +1,4 @@
+"NSHealthShareUsageDescription" = "Girasol lee tus minutos al aire libre, agua, calorías, pasos, pulso, oxígeno en sangre, sueño y datos corporales para mostrarte tu día y calcular tus metas.";
+"NSHealthUpdateUsageDescription" = "Girasol guarda en Salud el agua y las calorías que registras y tus minutos de respiración.";
+"NSLocationWhenInUseUsageDescription" = "Girasol usa tu ubicación aproximada para consultar el índice uv y la temperatura de donde estás.";
+"NSMotionUsageDescription" = "Girasol usa los sensores de movimiento del reloj para que los juegos reconozcan tus gestos de muñeca.";

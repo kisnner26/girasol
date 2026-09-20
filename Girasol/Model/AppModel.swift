@@ -21,6 +21,9 @@ final class AppModel {
     private let demo: Bool
     private var reading = DaylightService.Reading(minutesByHour: [:], lastSampleEnd: nil)
     private(set) var lastRefresh: Date?
+    /// temporizador de 2 h para reaplicar protector; se guarda para que sobreviva al cierre de la app.
+    private(set) var sunscreenTimer: SunscreenTimer? = UserDefaults.standard.data(forKey: "girasol.sunscreenTimer")
+        .flatMap { try? JSONDecoder().decode(SunscreenTimer.self, from: $0) }
 
     init(demo: Bool = ProcessInfo.processInfo.arguments.contains("-girasolDemo")) {
         self.demo = demo
@@ -82,15 +85,17 @@ final class AppModel {
                 weather = cached
                 isCached = true
             } else if weather == nil {
-                status = .failed("no pude consultar el clima")
+                status = .failed(loc("no pude consultar el clima"))
                 return
             }
         }
 
         reading = await daylight.today(now: now)
         recompute()
+        if let w = weather { WidgetSync.weather(w) }
         status = .ready
         await scheduleAlerts()
+        await autoSunscreen()
     }
 
     /// recalcula la exposicion cuando cambian la piel o el protector, sin volver a pedir datos.
@@ -98,11 +103,48 @@ final class AppModel {
         guard let w = weather else { return }
         summary = ExposureSummary.build(daylight: reading.minutesByHour, curve: w.curve, skin: settings.skin, protection: settings.sunscreen.protectionFactor)
         sunNow = reading.lastSampleEnd.map { now.timeIntervalSince($0) < 20 * 60 } ?? false
+        if let f = summary?.fraction, !demo { HabitStore.shared.recordSun(fraction: f, day: Calendar.current.startOfDay(for: now), profile: ProfileStore.shared.profile) }
     }
 
     func settingsChanged() async {
         recompute()
         await scheduleAlerts()
+        await scheduleSunscreenReminder()
+    }
+
+    // MARK: protector
+
+    /// "me puse protector": empieza a contar 2 h desde ahora.
+    func applySunscreen() async {
+        setTimer(SunscreenTimer(appliedAt: now))
+        Haptics.play(.success)
+        await scheduleSunscreenReminder()
+    }
+
+    func clearSunscreen() async {
+        setTimer(nil)
+        await scheduleSunscreenReminder()
+    }
+
+    private func setTimer(_ t: SunscreenTimer?) {
+        sunscreenTimer = t
+        if let t, let data = try? JSONEncoder().encode(t) { UserDefaults.standard.set(data, forKey: "girasol.sunscreenTimer") }
+        else { UserDefaults.standard.removeObject(forKey: "girasol.sunscreenTimer") }
+    }
+
+    private func scheduleSunscreenReminder() async {
+        guard !demo else { return }
+        let active = sunscreenTimer.flatMap { $0.isActive(at: now) ? $0 : nil }
+        await notifications.scheduleSunscreen(due: settings.reapplyReminders ? active?.due : nil, hasSunscreen: settings.sunscreen.spf > 0)
+    }
+
+    /// si el consejo pide protector y llevas un rato fuera, arranca el temporizador sin que lo pidas.
+    private func autoSunscreen() async {
+        guard settings.reapplyReminders, let w = weather, let advice else { return }
+        let outside = SunscreenReminder.outdoorMinutes(lastHourOf: now, buckets: reading.minutesByHour)
+        guard SunscreenReminder.shouldStart(advice: advice.level, isDay: w.current.isDay, outdoorMinutesLastHour: outside, timer: sunscreenTimer, now: now) else { return }
+        setTimer(SunscreenTimer(appliedAt: now))
+        await scheduleSunscreenReminder()
     }
 
     private func scheduleAlerts() async {

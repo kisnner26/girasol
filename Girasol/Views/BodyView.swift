@@ -10,13 +10,13 @@ struct BodyView: View {
             VStack(alignment: .leading, spacing: 10) {
                 Caption("cuerpo · hoy").frame(maxWidth: .infinity)
 
-                metric("pasos", numberText(health.totals.steps), "de \(p.stepGoal.formatted())") {
+                metric("pasos", numberText(health.totals.steps), loc("de \(p.stepGoal.formatted())")) {
                     Ring(fraction: health.stepsFraction, tint: Palette.moss, width: 3).frame(width: 30, height: 30)
                 }
 
-                metric("pulso", health.heart.latest.map { "\(Int($0.rounded())) lpm" } ?? "—",
-                       [health.heart.latestDate.map { "a las \(hourMinute($0))" },
-                        health.heart.resting.map { "en reposo \(Int($0.rounded())) · \(RestingHeart.title(bpm: $0))" }]
+                metric("pulso", health.heart.latest.map { loc("\(Int($0.rounded())) lpm") } ?? "—",
+                       [health.heart.latestDate.map { loc("a las \(hourMinute($0))") },
+                        health.heart.resting.map { loc("en reposo \(Int($0.rounded())) · \(RestingHeart.title(bpm: $0))") }]
                         .compactMap { $0 }.joined(separator: "\n")) { LineIcon(kind: .heart).frame(width: 26, height: 26) }
 
                 oxygenBlock
@@ -55,7 +55,7 @@ struct BodyView: View {
         }
     }
 
-    private func metric<V: View>(_ title: String, _ value: String, _ detail: String, @ViewBuilder icon: () -> V) -> some View {
+    private func metric<V: View>(_ title: LocalizedStringKey, _ value: String, _ detail: String, @ViewBuilder icon: () -> V) -> some View {
         HStack(spacing: 10) {
             icon()
             VStack(alignment: .leading, spacing: 1) {

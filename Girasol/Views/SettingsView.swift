@@ -4,7 +4,7 @@ import SunKit
 
 /// fila de ajuste con el estilo de la pagina: rotulo, valor en cursiva y una linea fina debajo.
 struct ChoiceRow<Value: Hashable>: View {
-    let title: String
+    let title: LocalizedStringKey
     let options: [(value: Value, label: String)]
     @Binding var selection: Value
 
@@ -19,7 +19,7 @@ struct ChoiceRow<Value: Hashable>: View {
 }
 
 struct SettingLabel: View {
-    let title: String
+    let title: LocalizedStringKey
     let value: String
 
     var body: some View {
@@ -37,7 +37,7 @@ struct SettingLabel: View {
 }
 
 struct OptionList<Value: Hashable>: View {
-    let title: String
+    let title: LocalizedStringKey
     let options: [(value: Value, label: String)]
     @Binding var selection: Value
     @Environment(\.dismiss) private var dismiss
@@ -73,7 +73,7 @@ struct OptionList<Value: Hashable>: View {
 
 /// numero editable con la corona.
 struct NumberRow: View {
-    let title: String
+    let title: LocalizedStringKey
     @Binding var value: Int
     let range: ClosedRange<Int>
     let step: Int
@@ -90,7 +90,7 @@ struct NumberRow: View {
 }
 
 struct NumberEditor: View {
-    let title: String
+    let title: LocalizedStringKey
     @Binding var value: Int
     let range: ClosedRange<Int>
     let step: Int
@@ -116,7 +116,7 @@ struct NumberEditor: View {
 }
 
 private struct SettingsPage<Content: View>: View {
-    let title: String
+    let title: LocalizedStringKey
     @ViewBuilder let content: Content
     var body: some View {
         ScrollView {
@@ -151,7 +151,7 @@ struct SettingsView: View {
         .paperBackground()
     }
 
-    private func link(_ s: SettingsSection, _ icon: IconKind, _ title: String, _ detail: String) -> some View {
+    private func link(_ s: SettingsSection, _ icon: IconKind, _ title: LocalizedStringKey, _ detail: LocalizedStringKey) -> some View {
         NavigationLink(value: s) { HomeRow(icon: icon, title: title, detail: detail) }
     }
 }
@@ -166,6 +166,7 @@ struct SettingsDetail: View {
         @Bindable var store = health.profiles
         @Bindable var settings = sun.settings
         @Bindable var appearance = appearance
+        @Bindable var language = LanguageSettings.shared
         switch section {
         case .profile:
             SettingsPage(title: "perfil") {
@@ -194,7 +195,7 @@ struct SettingsDetail: View {
                     Text("completa peso, estatura y año en tu perfil para una sugerencia").font(.serif(10, italic: true)).foregroundStyle(Palette.mid)
                 }
                 Toggle(isOn: $store.profile.addActivityToKcal) { Caption("sumar mi actividad") }.tint(Palette.moss)
-                NumberRow(title: "meta de pasos", value: $store.profile.stepGoal, range: 1000...40000, step: 500, unit: "pasos")
+                NumberRow(title: "meta de pasos", value: $store.profile.stepGoal, range: 1000...40000, step: 500, unit: loc("pasos"))
             }
         case .reminders:
             SettingsPage(title: "recordatorios") {
@@ -210,13 +211,16 @@ struct SettingsDetail: View {
                 ChoiceRow(title: "piel", options: SkinType.allCases.map { ($0, "\($0.title) · \($0.detail)") }, selection: $settings.skin)
                 ChoiceRow(title: "protector", options: Sunscreen.options.map { ($0, $0.title) }, selection: $settings.sunscreen)
                 Toggle(isOn: $settings.alertsEnabled) { Caption("alertas de uv") }.tint(Palette.moss)
+                Toggle(isOn: $settings.reapplyReminders) { Caption("reaplicar protector") }.tint(Palette.moss)
                 Button("actualizar el clima") { Task { await sun.refresh() } }.buttonStyle(InkButtonStyle())
             }
             .onChange(of: settings.skin) { Task { await sun.settingsChanged() } }
             .onChange(of: settings.sunscreen) { Task { await sun.settingsChanged() } }
             .onChange(of: settings.alertsEnabled) { Task { await sun.settingsChanged() } }
+            .onChange(of: settings.reapplyReminders) { Task { await sun.settingsChanged() } }
         case .look:
             SettingsPage(title: "apariencia") {
+                ChoiceRow(title: "idioma", options: LanguageChoice.allCases.map { ($0, languageTitle($0)) }, selection: $language.choice)
                 ChoiceRow(title: "tema", options: ThemeChoice.allCases.map { ($0, $0.title) }, selection: $appearance.choice)
                 ChoiceRow(title: "líquidos", options: VolumeUnit.allCases.map { ($0, $0.title) }, selection: $store.profile.volumeUnit)
                 ChoiceRow(title: "temperatura", options: TemperatureUnit.allCases.map { ($0, $0.title) }, selection: $store.profile.temperatureUnit)
@@ -262,5 +266,14 @@ struct MotionSettingsPage: View {
                 motion.basketPower.reset(); motion.dartsPower.reset(); cleared = true; Haptics.play(.click)
             }.buttonStyle(QuietButtonStyle())
         }
+    }
+}
+
+/// los idiomas se nombran en su propio idioma; solo "sistema" se traduce.
+private func languageTitle(_ c: LanguageChoice) -> String {
+    switch c {
+    case .system: loc("sistema")
+    case .es: "español"
+    case .en: "english"
     }
 }

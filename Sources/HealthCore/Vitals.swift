@@ -1,4 +1,5 @@
 import Foundation
+import Localization
 
 public enum OxygenLevel: Int, Comparable, Sendable {
     case normal, watch, low
@@ -12,13 +13,13 @@ public enum OxygenLevel: Int, Comparable, Sendable {
         }
     }
 
-    public var title: String { switch self { case .normal: "normal"; case .watch: "algo baja"; case .low: "baja" } }
+    public var title: String { switch self { case .normal: L10n.tr("normal"); case .watch: L10n.tr("algo baja"); case .low: L10n.tr("baja") } }
 
     public var message: String {
         switch self {
-        case .normal: "en rango normal"
-        case .watch: "repite la medición en reposo y quieto"
-        case .low: "repite en reposo; si sigue baja, consulta a un médico"
+        case .normal: L10n.tr("en rango normal")
+        case .watch: L10n.tr("repite la medición en reposo y quieto")
+        case .low: L10n.tr("repite en reposo; si sigue baja, consulta a un médico")
         }
     }
 
@@ -28,9 +29,9 @@ public enum OxygenLevel: Int, Comparable, Sendable {
 public enum RestingHeart {
     public static func title(bpm: Double) -> String {
         switch bpm {
-        case ..<50: "baja"
-        case ..<100: "normal"
-        default: "alta en reposo"
+        case ..<50: L10n.tr("baja")
+        case ..<100: L10n.tr("normal")
+        default: L10n.tr("alta en reposo")
         }
     }
 }

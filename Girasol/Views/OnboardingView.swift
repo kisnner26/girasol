@@ -18,6 +18,8 @@ struct OnboardingView: View {
                     Text("sol, agua, calma y salud en tu muñeca").font(.serif(12, italic: true)).foregroundStyle(Palette.mid)
                         .multilineTextAlignment(.center)
                     Button("empezar") { step = 1 }.buttonStyle(InkButtonStyle()).doubleTapPrimary()
+                    Button(Lang.code == "es" ? "english" : "español") { LanguageSettings.shared.choice = Lang.code == "es" ? .en : .es }
+                        .buttonStyle(QuietButtonStyle())
                 case 1:
                     Caption("hola")
                     Text("¿cómo te llamas?").font(.serif(16, italic: true)).foregroundStyle(Palette.ink)
@@ -63,7 +65,7 @@ struct OnboardingView: View {
         .paperBackground()
     }
 
-    private func goal(_ title: String, _ value: String) -> some View {
+    private func goal(_ title: LocalizedStringKey, _ value: String) -> some View {
         VStack(spacing: 1) {
             Caption(title)
             Text(value).font(.serif(20)).foregroundStyle(Palette.ink)

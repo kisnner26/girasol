@@ -84,6 +84,6 @@ struct InkButtonStyle: ButtonStyle {
 
 func clock(_ date: Date, _ tz: TimeZone) -> String {
     var style = Date.FormatStyle(date: .omitted, time: .shortened, timeZone: tz)
-    style.locale = Locale(identifier: "es")
+    style.locale = Lang.locale
     return date.formatted(style)
 }

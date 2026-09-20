@@ -587,3 +587,49 @@ final class GameFeelTests: XCTestCase {
         g.step(dt: 0.11); XCTAssertEqual(g.phase, .waiting)
     }
 }
+
+final class AwayTrackerTests: XCTestCase {
+    func testNothingHappensWhileTheScreenKeepsDrawing() {
+        var a = AwayTracker()
+        for i in 0..<100 { let t = Double(i) * 0.016; a.drew(at: t); XCTAssertNil(a.tick(at: t)) }
+        XCTAssertFalse(a.isAway)
+    }
+
+    func testSummaryAppearsWhenTheScreenComesBack() throws {
+        var a = AwayTracker()
+        a.drew(at: 1.0)
+        XCTAssertNil(a.tick(at: 1.5)); XCTAssertFalse(a.isAway, "0.5 s aun es un parpadeo")
+        XCTAssertNil(a.tick(at: 1.7)); XCTAssertTrue(a.isAway)
+        a.note("canasta", points: 3, at: 2.0)
+        a.note("fallo", at: 4.0)
+        a.note("canasta", points: 2, at: 6.0)
+        XCTAssertNil(a.tick(at: 8.0), "sigue apagada")
+        a.drew(at: 9.0)
+        let s = try XCTUnwrap(a.tick(at: 9.0))
+        XCTAssertEqual(s.items, [.init(label: "canasta", count: 2), .init(label: "fallo", count: 1)])
+        XCTAssertEqual(s.points, 5)
+        XCTAssertFalse(a.isAway)
+        XCTAssertNil(a.tick(at: 9.1), "una sola vez")
+    }
+
+    func testNoSummaryIfNothingHappenedOrEventsWereSeenLive() {
+        var a = AwayTracker()
+        a.drew(at: 0); a.note("canasta", points: 3, at: 0.2); a.drew(at: 0.2)   // con la pantalla encendida
+        XCTAssertNil(a.tick(at: 0.3))
+        _ = a.tick(at: 2)                                         // se apaga
+        a.drew(at: 5)
+        XCTAssertNil(a.tick(at: 5), "no paso nada mientras estaba apagada")
+    }
+
+    func testGapIsConfigurable() {
+        var a = AwayTracker(gap: 2)
+        a.drew(at: 0)
+        _ = a.tick(at: 1.9); XCTAssertFalse(a.isAway)
+        _ = a.tick(at: 2.1); XCTAssertTrue(a.isAway)
+    }
+
+    func testNeverAwayBeforeTheFirstDraw() {
+        var a = AwayTracker()
+        XCTAssertNil(a.tick(at: 100)); XCTAssertFalse(a.isAway)
+    }
+}
