@@ -73,7 +73,7 @@ tu team id está en xcode > settings > accounts. con la cuenta gratuita el perfi
 ## límites, con honestidad
 
 - no es un dispositivo médico; los cálculos de uv y calorías son aproximados.
-- watchOS apaga o atenúa la pantalla al girar la muñeca y ninguna app puede impedirlo. los juegos siguen corriendo y avisan con sonido y háptico, pero puede que no veas el resultado en ese instante. si el gesto no se detecta bien, ajusta la sensibilidad en ajustes > movimiento.
+- al girar la muñeca para lanzar, watchOS puede apagar o atenuar la pantalla y todavía no hay forma confirmada de evitarlo (el video en bucle no funcionó). los juegos siguen corriendo y avisan con sonido y háptico, pero puede que no veas el resultado en ese instante. si el gesto no se detecta bien, ajusta la sensibilidad en ajustes > movimiento.
 - requiere watchOS 27 / xcode 27 (beta al momento de escribir esto).
 
 ## pruebas
