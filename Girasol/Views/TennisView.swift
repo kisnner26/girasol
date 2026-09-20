@@ -20,7 +20,6 @@ struct TennisView: View {
             ZStack {
                 TimelineView(.animation(minimumInterval: 1 / 60)) { tl in
                     Canvas { ctx, size in draw(&ctx, size, tl.date) }
-                        .onChange(of: tl.date) { _, now in advance(now) }
                 }
                 GameHUD(left: "\(game.score) pts", right: lives)
                 if running && game.rally >= 2 {
@@ -38,10 +37,12 @@ struct TennisView: View {
                                 button: finished ? "otra vez" : "empezar") { begin() }
                 }
             }
+            .gameLoop { advance($0) }
             .contentShape(Rectangle())
             .onTapGesture { if settings.usesTouch && running { hit() } }
         }
         .paperBackground()
+        .keepAwake()
         .navigationBarBackButtonHidden(running)
         .onDisappear { feed.stop() }
     }

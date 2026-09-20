@@ -24,7 +24,6 @@ struct DartsView: View {
             ZStack {
                 TimelineView(.animation(minimumInterval: 1 / 60)) { tl in
                     Canvas { ctx, size in draw(&ctx, size, tl.date) }
-                        .onChange(of: tl.date) { _, now in advance(now) }
                 }
                 GameHUD(left: "\(game.total) pts", right: running ? "ronda \(game.turn)/\(Darts.turns)" : "")
                 if settings.showMeter && !settings.usesTouch && (running || practicing) {
@@ -34,6 +33,7 @@ struct DartsView: View {
                 overlay
             }
             .onAppear { boardSize = geo.size }
+            .gameLoop { advance($0) }
             .contentShape(Rectangle())
             .gesture(DragGesture(minimumDistance: 0).onEnded { v in
                 guard settings.usesTouch, running else { return }
@@ -43,6 +43,7 @@ struct DartsView: View {
             })
         }
         .paperBackground()
+        .keepAwake()
         .navigationBarBackButtonHidden(running)
         .onDisappear { feed.stop() }
     }

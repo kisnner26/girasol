@@ -33,6 +33,7 @@ struct AimCalibrationView: View {
         .padding(.horizontal, 10)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .paperBackground()
+        .keepAwake()
         .onAppear { MotionService.shared.start(hz: 30) { latest = $0.attitude } }
         .onDisappear { MotionService.shared.stop() }
     }

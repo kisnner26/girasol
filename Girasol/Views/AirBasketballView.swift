@@ -21,7 +21,6 @@ struct AirBasketballView: View {
             ZStack {
                 TimelineView(.animation(minimumInterval: 1 / 60)) { tl in
                     Canvas { ctx, size in draw(&ctx, size, tl.date) }
-                        .onChange(of: tl.date) { _, now in advance(now, geo.size) }
                 }
                 GameHUD(left: "\(game.score) pts", right: "\(Int(game.timeLeft.rounded(.up))) s")
                 if running && game.streak >= 2 {
@@ -33,6 +32,7 @@ struct AirBasketballView: View {
                 }
                 overlay
             }
+            .gameLoop { advance($0, geo.size) }
             .contentShape(Rectangle())
             .gesture(DragGesture(minimumDistance: 12).onEnded { v in
                 guard settings.usesTouch else { return }
@@ -40,6 +40,7 @@ struct AirBasketballView: View {
             })
         }
         .paperBackground()
+        .keepAwake()
         .navigationBarBackButtonHidden(running)
         .onDisappear { feed.stop() }
     }

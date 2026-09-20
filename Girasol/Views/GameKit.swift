@@ -137,3 +137,16 @@ func touchSwing(translation: CGSize, width: CGFloat) -> Swing {
     return Swing(time: 0, power: min(4, len * 4), duration: 0.2, direction: Vec3(x: translation.width / width, y: -translation.height / width, z: 0),
                  attitude: Attitude(roll: 0, pitch: 0, yaw: 0), steadiness: 1, gyroPeak: 0)
 }
+
+extension View {
+    /// avanza el juego con un reloj propio en vez del de dibujo: al bajar la muñeca el reloj se atenua y deja de
+    /// dibujar, pero la partida (y sus sensores) tiene que seguir corriendo.
+    func gameLoop(_ tick: @escaping @MainActor (Date) -> Void) -> some View {
+        task {
+            while !Task.isCancelled {
+                tick(Date())
+                try? await Task.sleep(for: .milliseconds(16))
+            }
+        }
+    }
+}

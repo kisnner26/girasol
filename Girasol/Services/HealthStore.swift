@@ -40,7 +40,7 @@ final class HealthStore: @unchecked Sendable {
     private let energyIn = HKQuantityType(.dietaryEnergyConsumed)
     private let mindful = HKCategoryType(.mindfulSession)
 
-    private var shareTypes: Set<HKSampleType> { [water, energyIn, mindful] }
+    private var shareTypes: Set<HKSampleType> { [water, energyIn, mindful, HKObjectType.workoutType()] }
     private var readTypes: Set<HKObjectType> {
         [water, energyIn, mindful,
          HKQuantityType(.timeInDaylight), HKQuantityType(.activeEnergyBurned), HKQuantityType(.stepCount),

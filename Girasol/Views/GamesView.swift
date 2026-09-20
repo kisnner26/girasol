@@ -25,6 +25,7 @@ struct GamesView: View {
             .padding(.horizontal, 6)
         }
         .paperBackground()
+        .keepAwake()
     }
 
     private func row(_ icon: IconKind, _ title: String, _ detail: String) -> some View {

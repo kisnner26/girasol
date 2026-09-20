@@ -11,7 +11,10 @@ app gratuita de salud para apple watch, hecha para vivir en la muñeca: sol, agu
 <p>
   <img src="docs/screens/comida.png" width="190" alt="comida">
   <img src="docs/screens/cuerpo.png" width="190" alt="cuerpo">
+  <img src="docs/screens/respirar.png" width="190" alt="respirar">
   <img src="docs/screens/juegos.png" width="190" alt="juegos">
+</p>
+<p>
   <img src="docs/screens/ajustes.png" width="190" alt="ajustes">
 </p>
 
@@ -51,6 +54,7 @@ capturas reales de un apple watch ultra 2.
 
 **juegos de muñeca**
 - baloncesto, dardos, pistola (láser o pólvora) y tenis, controlados con los sensores de movimiento: lanzas, apuntas inclinando la muñeca y disparas con un tirón.
+- la partida sigue corriendo aunque bajes la muñeca: usa una sesión de entrenamiento para mantener la app viva y los sensores activos (no guarda ningún entrenamiento en Salud).
 - sonidos sintetizados en tiempo real y háptico en cada golpe. calibración de puntería y fuerza, sensibilidad ajustable y modo táctil de respaldo.
 - pompas para relajarte.
 
@@ -69,7 +73,7 @@ tu team id está en xcode > settings > accounts. con la cuenta gratuita el perfi
 ## límites, con honestidad
 
 - no es un dispositivo médico; los cálculos de uv y calorías son aproximados.
-- los juegos de movimiento solo funcionan con la pantalla encendida y la app en primer plano. si el gesto no se detecta bien, ajusta la sensibilidad en ajustes > movimiento.
+- watchOS apaga o atenúa la pantalla al girar la muñeca y ninguna app puede impedirlo. los juegos siguen corriendo y avisan con sonido y háptico, pero puede que no veas el resultado en ese instante. si el gesto no se detecta bien, ajusta la sensibilidad en ajustes > movimiento.
 - requiere watchOS 27 / xcode 27 (beta al momento de escribir esto).
 
 ## pruebas

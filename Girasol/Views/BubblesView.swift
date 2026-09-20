@@ -11,9 +11,8 @@ struct BubblesView: View {
     var body: some View {
         GeometryReader { geo in
             ZStack {
-                TimelineView(.animation(minimumInterval: 1 / 60)) { tl in
+                TimelineView(.animation(minimumInterval: 1 / 60)) { _ in
                     Canvas { ctx, size in draw(&ctx, size) }
-                        .onChange(of: tl.date) { _, now in game.step(dt: clock.dt(now)) }
                 }
                 VStack {
                     Spacer()
@@ -22,10 +21,12 @@ struct BubblesView: View {
                 }
                 .allowsHitTesting(false)
             }
+            .gameLoop { game.step(dt: clock.dt($0)) }
             .contentShape(Rectangle())
             .gesture(DragGesture(minimumDistance: 0).onChanged { v in tap(v.location, geo.size) })
         }
         .paperBackground()
+        .keepAwake()
         .onDisappear { clock.reset() }
     }
 
