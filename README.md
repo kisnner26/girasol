@@ -20,6 +20,12 @@ app gratuita de salud para apple watch, en español e inglés, hecha para vivir 
   <img src="docs/screens/punteria.png" width="190" alt="calibrar la puntería">
   <img src="docs/screens/ajustes.png" width="190" alt="ajustes">
 </p>
+<p>
+  <img src="docs/screens/ajustes-sol.png" width="190" alt="ajustes de sol">
+  <img src="docs/screens/ajustes-movimiento.png" width="190" alt="ajustes de movimiento">
+  <img src="docs/screens/ajustes-recordatorios.png" width="190" alt="recordatorios">
+  <img src="docs/screens/acerca.png" width="190" alt="acerca de">
+</p>
 
 capturas reales de un apple watch ultra 2.
 
