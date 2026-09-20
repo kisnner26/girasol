@@ -1,0 +1,56 @@
+name: Girasol
+options:
+  bundleIdPrefix: com.kisnner26
+  createIntermediateGroups: true
+  deploymentTarget:
+    watchOS: "10.0"
+packages:
+  SunKit:
+    path: .
+targets:
+  Girasol:
+    type: application
+    platform: watchOS
+    sources:
+      - Girasol
+    dependencies:
+      - package: SunKit
+      - package: SunKit
+        product: HealthCore
+      - package: SunKit
+        product: GameCore
+    entitlements:
+      path: Girasol/Girasol.entitlements
+      properties:
+        com.apple.developer.healthkit: true
+    info:
+      path: Girasol/Info.plist
+      properties:
+        CFBundleDisplayName: Girasol
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        WKApplication: true
+        WKWatchOnly: true
+        WKBackgroundModes:
+          - mindfulness
+        NSMotionUsageDescription: Girasol usa los sensores de movimiento del reloj para que los juegos reconozcan tus gestos de muñeca.
+        NSHealthShareUsageDescription: Girasol lee tus minutos al aire libre, agua, calorías, pasos, pulso, oxígeno en sangre y datos corporales para mostrarte tu día y calcular tus metas.
+        NSHealthUpdateUsageDescription: Girasol guarda en Salud el agua y las calorías que registras y tus minutos de respiración.
+        NSLocationWhenInUseUsageDescription: Girasol usa tu ubicación aproximada para consultar el índice uv y la temperatura de donde estás.
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.kisnner26.girasol
+        SWIFT_VERSION: "5.0"
+        MARKETING_VERSION: "0.1.0"
+        CURRENT_PROJECT_VERSION: "1"
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        GENERATE_INFOPLIST_FILE: NO
+        CODE_SIGN_STYLE: Automatic
+        ENABLE_PREVIEWS: YES
+schemes:
+  Girasol:
+    build:
+      targets:
+        Girasol: all
+    run:
+      config: Debug

@@ -1,0 +1,151 @@
+import Foundation
+
+public enum Sex: String, Codable, CaseIterable, Sendable {
+    case female, male, other
+    public var title: String { switch self { case .female: "mujer"; case .male: "hombre"; case .other: "prefiero no decir" } }
+}
+
+public enum Objective: String, Codable, CaseIterable, Sendable {
+    case lose, maintain, gain
+    public var title: String { switch self { case .lose: "bajar de peso"; case .maintain: "mantener"; case .gain: "subir de peso" } }
+}
+
+public enum ActivityLevel: String, Codable, CaseIterable, Sendable {
+    case sedentary, light, moderate, active, veryActive
+    public var factor: Double { switch self { case .sedentary: 1.2; case .light: 1.375; case .moderate: 1.55; case .active: 1.725; case .veryActive: 1.9 } }
+    public var title: String {
+        switch self {
+        case .sedentary: "sedentario"
+        case .light: "ligero"
+        case .moderate: "moderado"
+        case .active: "activo"
+        case .veryActive: "muy activo"
+        }
+    }
+}
+
+public enum VolumeUnit: String, Codable, CaseIterable, Sendable {
+    case ml, oz
+    public var title: String { self == .ml ? "mililitros" : "onzas" }
+    /// texto de un volumen en ml en la unidad elegida.
+    public func text(ml: Int) -> String {
+        switch self {
+        case .ml: return "\(ml) ml"
+        case .oz: return String(format: "%.0f oz", Double(ml) / 29.5735)
+        }
+    }
+}
+
+public enum TemperatureUnit: String, Codable, CaseIterable, Sendable {
+    case celsius, fahrenheit
+    public var title: String { self == .celsius ? "°C" : "°F" }
+    public func text(celsius c: Double) -> String {
+        switch self {
+        case .celsius: return "\(Int(c.rounded()))°"
+        case .fahrenheit: return "\(Int((c * 9 / 5 + 32).rounded()))°"
+        }
+    }
+}
+
+/// todo lo que el usuario personaliza. se guarda como json.
+public struct Profile: Codable, Equatable, Sendable {
+    public var name = ""
+    public var sex = Sex.other
+    public var birthYear: Int?
+    public var heightCm: Double?
+    public var weightKg: Double?
+    public var activity = ActivityLevel.light
+    public var objective = Objective.maintain
+
+    public var waterGoalMl = 2000
+    public var glassMl = 250
+    public var kcalGoal = 2000
+    public var addActivityToKcal = false
+    public var stepGoal = 8000
+
+    public var volumeUnit = VolumeUnit.ml
+    public var temperatureUnit = TemperatureUnit.celsius
+
+    public var waterReminders = true
+    public var reminderEveryHours = 2
+    public var wakeHour = 8
+    public var sleepHour = 21
+
+    public var breathingPattern = "calm"
+    public var breathingMinutes = 1
+    public var sounds = true
+    public var haptics = true
+    public var onboarded = false
+
+    public init() {}
+
+    private enum CodingKeys: String, CodingKey {
+        case name, sex, birthYear, heightCm, weightKg, activity, objective, waterGoalMl, glassMl, kcalGoal, addActivityToKcal, stepGoal
+        case volumeUnit, temperatureUnit, waterReminders, reminderEveryHours, wakeHour, sleepHour
+        case breathingPattern, breathingMinutes, sounds, haptics, onboarded
+    }
+
+    /// tolera datos guardados por versiones anteriores: lo que falte queda con su valor por defecto.
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        let d = Profile()
+        name = try c.decodeIfPresent(String.self, forKey: .name) ?? d.name
+        sex = try c.decodeIfPresent(Sex.self, forKey: .sex) ?? d.sex
+        birthYear = try c.decodeIfPresent(Int.self, forKey: .birthYear)
+        heightCm = try c.decodeIfPresent(Double.self, forKey: .heightCm)
+        weightKg = try c.decodeIfPresent(Double.self, forKey: .weightKg)
+        activity = try c.decodeIfPresent(ActivityLevel.self, forKey: .activity) ?? d.activity
+        objective = try c.decodeIfPresent(Objective.self, forKey: .objective) ?? d.objective
+        waterGoalMl = try c.decodeIfPresent(Int.self, forKey: .waterGoalMl) ?? d.waterGoalMl
+        glassMl = try c.decodeIfPresent(Int.self, forKey: .glassMl) ?? d.glassMl
+        kcalGoal = try c.decodeIfPresent(Int.self, forKey: .kcalGoal) ?? d.kcalGoal
+        addActivityToKcal = try c.decodeIfPresent(Bool.self, forKey: .addActivityToKcal) ?? d.addActivityToKcal
+        stepGoal = try c.decodeIfPresent(Int.self, forKey: .stepGoal) ?? d.stepGoal
+        volumeUnit = try c.decodeIfPresent(VolumeUnit.self, forKey: .volumeUnit) ?? d.volumeUnit
+        temperatureUnit = try c.decodeIfPresent(TemperatureUnit.self, forKey: .temperatureUnit) ?? d.temperatureUnit
+        waterReminders = try c.decodeIfPresent(Bool.self, forKey: .waterReminders) ?? d.waterReminders
+        reminderEveryHours = try c.decodeIfPresent(Int.self, forKey: .reminderEveryHours) ?? d.reminderEveryHours
+        wakeHour = try c.decodeIfPresent(Int.self, forKey: .wakeHour) ?? d.wakeHour
+        sleepHour = try c.decodeIfPresent(Int.self, forKey: .sleepHour) ?? d.sleepHour
+        breathingPattern = try c.decodeIfPresent(String.self, forKey: .breathingPattern) ?? d.breathingPattern
+        breathingMinutes = try c.decodeIfPresent(Int.self, forKey: .breathingMinutes) ?? d.breathingMinutes
+        sounds = try c.decodeIfPresent(Bool.self, forKey: .sounds) ?? d.sounds
+        haptics = try c.decodeIfPresent(Bool.self, forKey: .haptics) ?? d.haptics
+        onboarded = try c.decodeIfPresent(Bool.self, forKey: .onboarded) ?? d.onboarded
+    }
+
+    /// nombre listo para mostrar: sin espacios de sobra y con tope de largo.
+    public var displayName: String {
+        String(name.trimmingCharacters(in: .whitespacesAndNewlines).prefix(20))
+    }
+
+    /// deja todos los valores en rangos razonables, venga lo que venga de disco o del usuario.
+    public func sanitized() -> Profile {
+        var p = self
+        p.name = displayName
+        p.waterGoalMl = min(6000, max(500, waterGoalMl))
+        p.glassMl = min(1000, max(100, glassMl))
+        p.kcalGoal = min(6000, max(800, kcalGoal))
+        p.stepGoal = min(40000, max(1000, stepGoal))
+        p.reminderEveryHours = min(6, max(1, reminderEveryHours))
+        p.wakeHour = min(12, max(4, wakeHour))
+        p.sleepHour = min(23, max(p.wakeHour + 6, sleepHour))
+        p.breathingMinutes = min(5, max(1, breathingMinutes))
+        if let h = heightCm { p.heightCm = min(230, max(100, h)) }
+        if let w = weightKg { p.weightKg = min(250, max(25, w)) }
+        return p
+    }
+}
+
+public enum Greeting {
+    public static func text(hour: Int, name: String) -> String {
+        let base: String
+        switch hour {
+        case 5..<12: base = "buenos días"
+        case 12..<19: base = "buenas tardes"
+        default: base = "buenas noches"
+        }
+        let n = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        return n.isEmpty ? base : "\(base), \(n)"
+    }
+}

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>$(DEVELOPMENT_LANGUAGE)</string>
+	<key>CFBundleDisplayName</key>
+	<string>Girasol</string>
+	<key>CFBundleExecutable</key>
+	<string>$(EXECUTABLE_NAME)</string>
+	<key>CFBundleIdentifier</key>
+	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>$(PRODUCT_NAME)</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>$(MARKETING_VERSION)</string>
+	<key>CFBundleVersion</key>
+	<string>$(CURRENT_PROJECT_VERSION)</string>
+	<key>NSHealthShareUsageDescription</key>
+	<string>Girasol lee tus minutos al aire libre, agua, calorías, pasos, pulso, oxígeno en sangre y datos corporales para mostrarte tu día y calcular tus metas.</string>
+	<key>NSHealthUpdateUsageDescription</key>
+	<string>Girasol guarda en Salud el agua y las calorías que registras y tus minutos de respiración.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Girasol usa tu ubicación aproximada para consultar el índice uv y la temperatura de donde estás.</string>
+	<key>NSMotionUsageDescription</key>
+	<string>Girasol usa los sensores de movimiento del reloj para que los juegos reconozcan tus gestos de muñeca.</string>
+	<key>WKApplication</key>
+	<true/>
+	<key>WKBackgroundModes</key>
+	<array>
+		<string>mindfulness</string>
+	</array>
+	<key>WKWatchOnly</key>
+	<true/>
+</dict>
+</plist>
