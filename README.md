@@ -15,6 +15,9 @@ app gratuita de salud para apple watch, en español e inglés, hecha para vivir 
   <img src="docs/screens/juegos.png" width="190" alt="juegos">
 </p>
 <p>
+  <img src="docs/screens/racha.png" width="190" alt="racha">
+  <img src="docs/screens/sueno.png" width="190" alt="sueño">
+  <img src="docs/screens/punteria.png" width="190" alt="calibrar la puntería">
   <img src="docs/screens/ajustes.png" width="190" alt="ajustes">
 </p>
 
