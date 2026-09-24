@@ -196,6 +196,8 @@ struct SettingsDetail: View {
                 }
                 Toggle(isOn: $store.profile.addActivityToKcal) { Caption("sumar mi actividad") }.tint(Palette.moss)
                 NumberRow(title: "meta de pasos", value: $store.profile.stepGoal, range: 1000...40000, step: 500, unit: loc("pasos"))
+                NumberRow(title: "meta de calma", value: $store.profile.mindfulGoalMinutes, range: 0...60, step: 1, unit: loc("min"))
+                Text("cuenta para la racha; 0 la desactiva.").font(.serif(10, italic: true)).foregroundStyle(Palette.mid)
             }
         case .reminders:
             SettingsPage(title: "recordatorios") {
@@ -204,6 +206,8 @@ struct SettingsDetail: View {
                 NumberRow(title: "despiertas a las", value: $store.profile.wakeHour, range: 4...12, step: 1, unit: "h")
                 NumberRow(title: "duermes a las", value: $store.profile.sleepHour, range: 18...23, step: 1, unit: "h")
                 Text("solo avisa si aún no llegas a tu meta.").font(.serif(10, italic: true)).foregroundStyle(Palette.mid)
+                Toggle(isOn: $store.profile.postureReminders) { Caption("estirar al estar sentado") }.tint(Palette.moss)
+                NumberRow(title: "avisar tras", value: $store.profile.sedentaryThresholdHours, range: 1...6, step: 1, unit: "h")
             }
             .onChange(of: store.profile) { Task { await health.scheduleWaterReminders() } }
         case .sun:

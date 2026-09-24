@@ -47,7 +47,7 @@ final class HealthStore: @unchecked Sendable {
          HKQuantityType(.heartRate), HKQuantityType(.restingHeartRate), HKQuantityType(.oxygenSaturation),
          HKQuantityType(.bodyMass), HKQuantityType(.height),
          HKCharacteristicType(.dateOfBirth), HKCharacteristicType(.biologicalSex),
-         HKCategoryType(.sleepAnalysis)]
+         HKCategoryType(.sleepAnalysis), HKCategoryType(.appleStandHour)]
     }
 
     private let ml = HKUnit.literUnit(with: .milli)
@@ -131,6 +131,24 @@ final class HealthStore: @unchecked Sendable {
         await daily(HKQuantityType(.stepCount), .count(), days: days, now: now).mapValues { Int($0.rounded()) }
     }
 
+    /// minutos de mindfulness por dia de los ultimos `days` dias, por inicio de dia (el dia en que termino la sesion).
+    func dailyMindful(days: Int, now: Date) async -> [Date: Double] {
+        guard isAvailable, let from = Calendar.current.date(byAdding: .day, value: -(days - 1), to: Calendar.current.startOfDay(for: now)) else { return [:] }
+        return await withCheckedContinuation { c in
+            let q = HKSampleQuery(sampleType: mindful, predicate: HKQuery.predicateForSamples(withStart: from, end: nil),
+                                  limit: HKObjectQueryNoLimit, sortDescriptors: nil) { _, samples, _ in
+                var out: [Date: Double] = [:]
+                let cal = Calendar.current
+                for s in (samples as? [HKCategorySample] ?? []) {
+                    let day = cal.startOfDay(for: s.endDate)
+                    out[day, default: 0] += s.endDate.timeIntervalSince(s.startDate) / 60
+                }
+                c.resume(returning: out)
+            }
+            store.execute(q)
+        }
+    }
+
     /// tramos dormidos de los ultimos `days` dias (no cuenta "en cama" ni "despierto").
     func sleep(days: Int, now: Date) async -> [SleepSegment] {
         guard isAvailable, let from = Calendar.current.date(byAdding: .day, value: -days, to: Calendar.current.startOfDay(for: now)) else { return [] }
@@ -142,6 +160,21 @@ final class HealthStore: @unchecked Sendable {
                 let segs = (samples as? [HKCategorySample] ?? []).filter { asleep.contains($0.value) }
                     .map { SleepSegment(start: $0.startDate, end: $0.endDate) }
                 c.resume(returning: segs)
+            }
+            store.execute(q)
+        }
+    }
+
+    /// horas "de pie" de Salud de las ultimas `hours` horas, para saber si llevas mucho rato sentado.
+    func standHours(hours: Int = 8, now: Date) async -> [StandHour] {
+        guard isAvailable, let from = Calendar.current.date(byAdding: .hour, value: -hours, to: now) else { return [] }
+        return await withCheckedContinuation { c in
+            let q = HKSampleQuery(sampleType: HKCategoryType(.appleStandHour), predicate: HKQuery.predicateForSamples(withStart: from, end: nil),
+                                  limit: HKObjectQueryNoLimit, sortDescriptors: nil) { _, samples, _ in
+                let items = (samples as? [HKCategorySample] ?? []).map {
+                    StandHour(hourStart: $0.startDate, stood: $0.value == HKCategoryValueAppleStandHour.stood.rawValue)
+                }
+                c.resume(returning: items)
             }
             store.execute(q)
         }

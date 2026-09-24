@@ -10,9 +10,10 @@ final class ProfileTests: XCTestCase {
     func testSanitizedClampsEverything() {
         var p = Profile()
         p.waterGoalMl = 100; p.glassMl = 10; p.kcalGoal = 100; p.stepGoal = 10; p.reminderEveryHours = 0
-        p.wakeHour = 0; p.sleepHour = 3; p.breathingMinutes = 99; p.heightCm = 10; p.weightKg = 900
+        p.wakeHour = 0; p.sleepHour = 3; p.breathingMinutes = 99; p.heightCm = 10; p.weightKg = 900; p.mindfulGoalMinutes = -5
         let s = p.sanitized()
         XCTAssertEqual([s.waterGoalMl, s.glassMl, s.kcalGoal, s.stepGoal, s.reminderEveryHours], [500, 100, 800, 1000, 1])
+        XCTAssertEqual(s.mindfulGoalMinutes, 0)
         XCTAssertEqual(s.wakeHour, 4)
         XCTAssertEqual(s.sleepHour, 10, "dormir al menos 6 h despues de despertar")
         XCTAssertEqual(s.breathingMinutes, 5)
@@ -20,8 +21,9 @@ final class ProfileTests: XCTestCase {
         XCTAssertEqual(s.weightKg, 250)
 
         p.waterGoalMl = 99999; p.glassMl = 99999; p.kcalGoal = 99999; p.stepGoal = 999999; p.reminderEveryHours = 99
-        p.wakeHour = 20; p.sleepHour = 30; p.breathingMinutes = 0; p.heightCm = 999; p.weightKg = 1
+        p.wakeHour = 20; p.sleepHour = 30; p.breathingMinutes = 0; p.heightCm = 999; p.weightKg = 1; p.mindfulGoalMinutes = 999
         let t = p.sanitized()
+        XCTAssertEqual(t.mindfulGoalMinutes, 60)
         XCTAssertEqual([t.waterGoalMl, t.glassMl, t.kcalGoal, t.stepGoal, t.reminderEveryHours], [6000, 1000, 6000, 40000, 6])
         XCTAssertEqual(t.wakeHour, 12)
         XCTAssertEqual(t.sleepHour, 23)
@@ -191,6 +193,57 @@ final class NutritionTests: XCTestCase {
         XCTAssertEqual(Nutrition.remaining(goal: 2000, consumed: 2300, active: 0, addActivity: false), -300)
         XCTAssertEqual(Nutrition.fraction(consumed: 1000, goal: 2000), 0.5)
         XCTAssertEqual(Nutrition.fraction(consumed: 100, goal: 0), 100, "meta 0 no divide entre cero")
+    }
+}
+
+final class FocusTests: XCTestCase {
+    private let classic = FocusPattern.pattern(id: "classic")
+    private let short = FocusPattern.pattern(id: "short")
+
+    func testPatterns() {
+        XCTAssertEqual(classic.cycleMinutes, 30)
+        XCTAssertEqual(short.cycleMinutes, 18)
+        XCTAssertEqual(FocusPattern.pattern(id: "no-existe"), classic)
+        XCTAssertEqual(FocusPattern.all.count, 3)
+    }
+
+    func testCyclesRoundToWholeBlocks() {
+        XCTAssertEqual(FocusSession(pattern: classic, minutes: 30).cycles, 1)
+        XCTAssertEqual(FocusSession(pattern: classic, minutes: 55).cycles, 2, "55/30 = 1.83 -> 2")
+        XCTAssertEqual(FocusSession(pattern: classic, minutes: 0).cycles, 1, "minimo un ciclo")
+        XCTAssertEqual(FocusSession(pattern: classic, minutes: 60).duration, 3600)
+    }
+
+    func testMomentsSwitchBetweenWorkAndRest() throws {
+        let s = FocusSession(pattern: classic, minutes: 30)
+        let start = try XCTUnwrap(s.moment(at: 0))
+        XCTAssertEqual(start.phase, .work); XCTAssertEqual(start.phaseProgress, 0, accuracy: 1e-9); XCTAssertEqual(start.remaining, 1800)
+        let midWork = try XCTUnwrap(s.moment(at: 750))   // mitad de los 25 min de trabajo
+        XCTAssertEqual(midWork.phase, .work); XCTAssertEqual(midWork.phaseProgress, 0.5, accuracy: 1e-9)
+        let rest = try XCTUnwrap(s.moment(at: 1500 + 60))   // 25 min + 1 min de descanso
+        XCTAssertEqual(rest.phase, .rest); XCTAssertEqual(rest.phaseProgress, 60.0 / 300, accuracy: 1e-9)
+        XCTAssertNil(s.moment(at: 1800))
+        XCTAssertNil(s.moment(at: -1))
+    }
+
+    func testSecondCycleStartsAtWork() throws {
+        let s = FocusSession(pattern: classic, minutes: 55)
+        XCTAssertEqual(try XCTUnwrap(s.moment(at: 1800)).phase, .work)
+        XCTAssertEqual(try XCTUnwrap(s.moment(at: 1800)).cycleIndex, 1)
+    }
+
+    func testHapticsOneWorkAndRestStartPerCycle() {
+        let events = FocusSession(pattern: classic, minutes: 60).haptics()
+        XCTAssertEqual(events.filter { $0.kind == .workStart }.count, 2)
+        XCTAssertEqual(events.filter { $0.kind == .restStart }.count, 2)
+        XCTAssertEqual(events.last, FocusHapticEvent(time: 3600, kind: .end))
+        XCTAssertEqual(events.map(\.time), events.map(\.time).sorted())
+    }
+
+    func testNoRestHapticWhenBreakIsZero() {
+        let zeroBreak = FocusPattern(id: "x", title: "x", detail: "x", workMinutes: 10, breakMinutes: 0)
+        let events = FocusSession(pattern: zeroBreak, minutes: 10).haptics()
+        XCTAssertEqual(events.filter { $0.kind == .restStart }.count, 0)
     }
 }
 

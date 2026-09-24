@@ -25,7 +25,7 @@ struct WeekView: View {
                     }
                 }
                 HStack(spacing: 10) {
-                    key("agua", Palette.moss); key("pasos", Palette.olive); key("sol", Palette.rose)
+                    key("agua", Palette.moss); key("pasos", Palette.olive); key("sol", Palette.rose); key("calma", Palette.ink)
                 }
                 .padding(.top, 2)
 
@@ -33,6 +33,11 @@ struct WeekView: View {
                 Text("mejor racha: \(health.bestStreak)").font(.serif(12, italic: true)).foregroundStyle(Palette.ink)
                 Text("cuenta lo que guarda Salud en los últimos 7 días; el sol lo mide Girasol cuando la abres.")
                     .font(.serif(9, italic: true)).foregroundStyle(Palette.faint).multilineTextAlignment(.center)
+
+                if let r = health.weeklyReport {
+                    Hairline().padding(.vertical, 4)
+                    WeeklyReportBlock(report: r, profile: health.profile)
+                }
             }
             .padding(.horizontal, 6)
         }
@@ -45,6 +50,7 @@ struct WeekView: View {
             dot(r?.waterMet, Palette.moss)
             dot(r?.stepsMet, Palette.olive)
             dot(r.map { $0.sunFraction == nil ? nil : $0.sunMet } ?? nil, Palette.rose)
+            dot(r.map { $0.mindfulGoal > 0 ? $0.mindfulMet : nil } ?? nil, Palette.ink)
             Text(initial(day)).font(.serif(9, italic: isToday)).foregroundStyle(isToday ? Palette.ink : Palette.mid)
         }
         .frame(maxWidth: .infinity)
@@ -69,5 +75,38 @@ struct WeekView: View {
             Circle().fill(color).frame(width: 5, height: 5)
             Text(text).font(.serif(9, italic: true)).foregroundStyle(Palette.mid)
         }
+    }
+}
+
+/// "esta semana bebiste X, dormiste Y": el promedio diario contra la semana anterior, sin sacar conclusiones de causa.
+struct WeeklyReportBlock: View {
+    let report: WeeklyReport
+    let profile: Profile
+
+    var body: some View {
+        VStack(spacing: 4) {
+            Caption("esta semana")
+            Text(profile.volumeUnit.text(ml: report.waterMl) + " " + loc("de agua al día") + " " + deltaText(report.waterDeltaMl, unit: "ml"))
+                .font(.serif(11, italic: true)).foregroundStyle(Palette.ink).multilineTextAlignment(.center)
+            Text("\(numberText(Double(report.steps))) " + loc("pasos al día") + " " + deltaText(report.stepsDelta, unit: ""))
+                .font(.serif(11, italic: true)).foregroundStyle(Palette.ink).multilineTextAlignment(.center)
+            if report.hasSleepData {
+                Text(String(format: "%.1f", report.sleepHours) + " " + loc("h de sueño") + " " + deltaText(report.sleepDeltaHours, unit: "h", decimals: 1))
+                    .font(.serif(11, italic: true)).foregroundStyle(Palette.ink).multilineTextAlignment(.center)
+            }
+            Text("comparado con la semana anterior; no dice que uno cause el otro.")
+                .font(.serif(9, italic: true)).foregroundStyle(Palette.faint).multilineTextAlignment(.center)
+        }
+    }
+
+    private func deltaText(_ delta: Int, unit: String) -> String {
+        deltaText(Double(delta), unit: unit, decimals: 0)
+    }
+
+    private func deltaText(_ delta: Double, unit: String, decimals: Int) -> String {
+        guard abs(delta) >= (decimals == 0 ? 1 : 0.1) else { return loc("(igual que antes)") }
+        let value = decimals == 0 ? "\(Int(abs(delta).rounded()))" : String(format: "%.\(decimals)f", abs(delta))
+        let text = unit.isEmpty ? value : "\(value) \(unit)"
+        return delta > 0 ? loc("(+\(text) que antes)") : loc("(-\(text) que antes)")
     }
 }

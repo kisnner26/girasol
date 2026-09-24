@@ -202,6 +202,34 @@ final class AdviceTests: XCTestCase {
         XCTAssertTrue(a(1, temp: 5).detail.contains("frío"))
         XCTAssertFalse(a(1, temp: 25).detail.contains("hidrátate"))
     }
+
+    func testColdRiskLevels() {
+        XCTAssertEqual(ColdRisk(apparent: -4.9), .none)
+        XCTAssertEqual(ColdRisk(apparent: -5), .none)
+        XCTAssertEqual(ColdRisk(apparent: -5.1), .caution)
+        XCTAssertEqual(ColdRisk(apparent: -14.9), .caution)
+        XCTAssertEqual(ColdRisk(apparent: -15), .high)
+        XCTAssertEqual(ColdRisk(apparent: -24.9), .high)
+        XCTAssertEqual(ColdRisk(apparent: -25), .extreme)
+        XCTAssertTrue(ColdRisk.none < .caution && ColdRisk.caution < .high && ColdRisk.high < .extreme)
+    }
+
+    func testAdviceWithColdRisk() {
+        XCTAssertEqual(a(1, temp: -6).coldRisk, .caution)
+        XCTAssertEqual(a(1, temp: -6).level, .care, "aviso de congelación sube el nivel al menos a cuidado")
+        XCTAssertTrue(a(1, temp: -6).detail.contains("congelarse"))
+        XCTAssertEqual(a(1, temp: -20).level, .avoid)
+        XCTAssertEqual(a(12, temp: -20).level, .stay, "no se rebaja un nivel ya mas alto")
+        XCTAssertEqual(a(1, temp: 10).coldRisk, .none)
+    }
+
+    func testColdRiskAtNightStillWarns() {
+        let n = a(9, temp: -10, day: false, used: 0)
+        XCTAssertEqual(n.level, .avoid)
+        XCTAssertTrue(n.detail.contains("congelarse"))
+        let mild = a(9, temp: 5, day: false, used: 0)
+        XCTAssertEqual(mild.level, .ok)
+    }
 }
 
 final class AlertTests: XCTestCase {
