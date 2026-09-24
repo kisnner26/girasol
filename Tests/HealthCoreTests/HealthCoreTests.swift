@@ -268,6 +268,40 @@ final class VitalsTests: XCTestCase {
     }
 }
 
+final class HeartVariabilityTests: XCTestCase {
+    private var utc: Calendar { var c = Calendar(identifier: .gregorian); c.timeZone = TimeZone(secondsFromGMT: 0)!; return c }
+    private func day(_ d: Int) -> Date { utc.date(from: DateComponents(year: 2026, month: 9, day: d))! }
+
+    func testAveragesRecentAgainstPrevious() throws {
+        // ultimos 7 dias (15..21): 40, 44, 48 ms; los 7 anteriores (8..14): 30, 34, 38 ms
+        let samples = [(day(15), 40.0), (day(18), 44.0), (day(21), 48.0), (day(8), 30.0), (day(11), 34.0), (day(14), 38.0)]
+            .map { (date: $0.0, sdnnMs: $0.1) }
+        let t = try XCTUnwrap(HeartVariability.trend(samples: samples, today: day(21), calendar: utc))
+        XCTAssertEqual(t.recentAvgMs, 44, accuracy: 1e-9)
+        XCTAssertEqual(t.previousAvgMs, 34, accuracy: 1e-9)
+        XCTAssertEqual(t.deltaMs, 10, accuracy: 1e-9)
+    }
+
+    func testNilWithoutSamplesOnEitherSide() {
+        let onlyRecent = [(date: day(20), sdnnMs: 40.0)]
+        XCTAssertNil(HeartVariability.trend(samples: onlyRecent, today: day(21), calendar: utc))
+        XCTAssertNil(HeartVariability.trend(samples: [], today: day(21), calendar: utc))
+    }
+
+    func testNegativeDeltaWhenHRVDropped() throws {
+        let samples = [(date: day(20), sdnnMs: 30.0), (date: day(10), sdnnMs: 50.0)]
+        let t = try XCTUnwrap(HeartVariability.trend(samples: samples, today: day(21), calendar: utc))
+        XCTAssertEqual(t.deltaMs, -20, accuracy: 1e-9)
+    }
+
+    func testSamplesOutsideBothWindowsAreIgnored() throws {
+        let samples = [(date: day(20), sdnnMs: 40.0), (date: day(12), sdnnMs: 30.0), (date: day(1), sdnnMs: 999.0)]
+        let t = try XCTUnwrap(HeartVariability.trend(samples: samples, today: day(21), calendar: utc))
+        XCTAssertEqual(t.recentAvgMs, 40, accuracy: 1e-9)
+        XCTAssertEqual(t.previousAvgMs, 30, accuracy: 1e-9)
+    }
+}
+
 final class BreathingTests: XCTestCase {
     private let calm = BreathingPattern.pattern(id: "calm")
     private let box = BreathingPattern.pattern(id: "box")

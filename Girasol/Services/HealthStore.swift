@@ -45,6 +45,7 @@ final class HealthStore: @unchecked Sendable {
         [water, energyIn, mindful,
          HKQuantityType(.timeInDaylight), HKQuantityType(.activeEnergyBurned), HKQuantityType(.stepCount),
          HKQuantityType(.heartRate), HKQuantityType(.restingHeartRate), HKQuantityType(.oxygenSaturation),
+         HKQuantityType(.heartRateVariabilitySDNN),
          HKQuantityType(.bodyMass), HKQuantityType(.height),
          HKCharacteristicType(.dateOfBirth), HKCharacteristicType(.biologicalSex),
          HKCategoryType(.sleepAnalysis), HKCategoryType(.appleStandHour)]
@@ -163,6 +164,14 @@ final class HealthStore: @unchecked Sendable {
             }
             store.execute(q)
         }
+    }
+
+    /// variabilidad del pulso (sdnn) de los ultimos `days` dias, para comparar esta semana con la anterior.
+    func heartRateVariability(days: Int, now: Date) async -> [(date: Date, sdnnMs: Double)] {
+        guard isAvailable, let from = Calendar.current.date(byAdding: .day, value: -days, to: now) else { return [] }
+        let samples = await recent(HKQuantityType(.heartRateVariabilitySDNN), limit: HKObjectQueryNoLimit, since: from)
+        let ms = HKUnit.secondUnit(with: .milli)
+        return samples.map { (date: $0.endDate, sdnnMs: $0.quantity.doubleValue(for: ms)) }
     }
 
     /// horas "de pie" de Salud de las ultimas `hours` horas, para saber si llevas mucho rato sentado.

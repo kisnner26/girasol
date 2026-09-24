@@ -39,7 +39,7 @@ struct ExposureView: View {
                         Text("sin minutos al aire libre registrados hoy").font(.serif(11, italic: true))
                             .foregroundStyle(Palette.mid).multilineTextAlignment(.center)
                     }
-                    if model.sunNow { Caption("✦ al sol ahora", color: Palette.ink) }
+                    if model.sunPresence == .direct { Caption("✦ al sol ahora", color: Palette.ink) }
                     SunscreenTimerView()
                 }
                 .padding(.horizontal, 6)
