@@ -208,9 +208,11 @@ final class AdviceTests: XCTestCase {
         XCTAssertEqual(ColdRisk(apparent: -5), .none)
         XCTAssertEqual(ColdRisk(apparent: -5.1), .caution)
         XCTAssertEqual(ColdRisk(apparent: -14.9), .caution)
-        XCTAssertEqual(ColdRisk(apparent: -15), .high)
+        XCTAssertEqual(ColdRisk(apparent: -15), .caution)
+        XCTAssertEqual(ColdRisk(apparent: -15.1), .high)
         XCTAssertEqual(ColdRisk(apparent: -24.9), .high)
-        XCTAssertEqual(ColdRisk(apparent: -25), .extreme)
+        XCTAssertEqual(ColdRisk(apparent: -25), .high)
+        XCTAssertEqual(ColdRisk(apparent: -25.1), .extreme)
         XCTAssertTrue(ColdRisk.none < .caution && ColdRisk.caution < .high && ColdRisk.high < .extreme)
     }
 

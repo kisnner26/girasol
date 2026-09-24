@@ -28,12 +28,10 @@ public enum ColdRisk: Int, Comparable, Sendable {
     case none, caution, high, extreme
 
     public init(apparent: Double) {
-        switch apparent {
-        case -5.0...: self = .none
-        case -15.0..<(-5.0): self = .caution
-        case -25.0..<(-15.0): self = .high
-        default: self = .extreme
-        }
+        if apparent < -25 { self = .extreme }
+        else if apparent < -15 { self = .high }
+        else if apparent < -5 { self = .caution }
+        else { self = .none }
     }
 
     public static func < (a: ColdRisk, b: ColdRisk) -> Bool { a.rawValue < b.rawValue }
