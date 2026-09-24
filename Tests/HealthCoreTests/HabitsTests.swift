@@ -248,6 +248,30 @@ final class WeeklySummaryTests: XCTestCase {
     }
 }
 
+final class TravelModeTests: XCTestCase {
+    func testHourShift() {
+        XCTAssertEqual(TravelMode.hourShift(fromOffsetSeconds: -21600, toOffsetSeconds: -21600), 0)
+        XCTAssertEqual(TravelMode.hourShift(fromOffsetSeconds: -21600, toOffsetSeconds: 0), 6)
+        XCTAssertEqual(TravelMode.hourShift(fromOffsetSeconds: 3600, toOffsetSeconds: -28800), -9)
+    }
+
+    func testIsTravelIgnoresDaylightSavingChanges() {
+        XCTAssertFalse(TravelMode.isTravel(hourShift: 1))
+        XCTAssertFalse(TravelMode.isTravel(hourShift: -1))
+        XCTAssertFalse(TravelMode.isTravel(hourShift: 0))
+        XCTAssertTrue(TravelMode.isTravel(hourShift: 2))
+        XCTAssertTrue(TravelMode.isTravel(hourShift: -5))
+    }
+
+    func testShiftedHourWrapsAroundTheClock() {
+        XCTAssertEqual(TravelMode.shiftedHour(8, by: 3), 11)
+        XCTAssertEqual(TravelMode.shiftedHour(22, by: 3), 1)
+        XCTAssertEqual(TravelMode.shiftedHour(2, by: -5), 21)
+        XCTAssertEqual(TravelMode.shiftedHour(8, by: 0), 8)
+        XCTAssertEqual(TravelMode.shiftedHour(0, by: -1), 23)
+    }
+}
+
 final class LocalizationHookTests: XCTestCase {
     override func tearDown() { L10n.translate = { $0 } }
 
