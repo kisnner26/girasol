@@ -35,3 +35,32 @@ public enum RestingHeart {
         }
     }
 }
+
+/// promedio de variabilidad del pulso (sdnn, en ms) de los ultimos dias contra los anteriores: una comparacion, no un diagnostico.
+public struct HRVTrend: Equatable, Sendable {
+    public var recentAvgMs: Double
+    public var previousAvgMs: Double
+    public var deltaMs: Double { recentAvgMs - previousAvgMs }
+
+    public init(recentAvgMs: Double, previousAvgMs: Double) {
+        self.recentAvgMs = recentAvgMs; self.previousAvgMs = previousAvgMs
+    }
+}
+
+public enum HeartVariability {
+    /// compara el promedio de los ultimos `days` dias con el de los `days` anteriores; nil si falta algun lado.
+    public static func trend(samples: [(date: Date, sdnnMs: Double)], today: Date, days: Int = 7, calendar: Calendar = .current) -> HRVTrend? {
+        let start = calendar.startOfDay(for: today)
+        guard let recentStart = calendar.date(byAdding: .day, value: -(days - 1), to: start),
+              let previousStart = calendar.date(byAdding: .day, value: -(2 * days - 1), to: start),
+              let previousEnd = calendar.date(byAdding: .day, value: -1, to: recentStart),
+              let previousEndExclusive = calendar.date(byAdding: .day, value: 1, to: previousEnd) else { return nil }
+
+        let recent = samples.filter { $0.date >= recentStart && $0.date <= today }.map(\.sdnnMs)
+        let previous = samples.filter { $0.date >= previousStart && $0.date < previousEndExclusive }.map(\.sdnnMs)
+        guard !recent.isEmpty, !previous.isEmpty else { return nil }
+
+        func avg(_ xs: [Double]) -> Double { xs.reduce(0, +) / Double(xs.count) }
+        return HRVTrend(recentAvgMs: avg(recent), previousAvgMs: avg(previous))
+    }
+}

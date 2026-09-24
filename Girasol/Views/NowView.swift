@@ -33,6 +33,7 @@ struct NowView: View {
                         } else {
                             Caption("sin límite con este uv")
                         }
+                        sunPresenceLine
                     }
                     if model.isCached {
                         Caption("sin conexión · datos de \(clock(w.fetchedAt, w.timeZone))", color: Palette.rose)
@@ -44,6 +45,14 @@ struct NowView: View {
             }
         }
         .containerBackground(Palette.paper, for: .tabView)
+    }
+
+    @ViewBuilder private var sunPresenceLine: some View {
+        switch model.sunPresence {
+        case .direct: Caption("☀ al sol ahora mismo", color: Palette.rose)
+        case .shade: Caption("en sombra ahora mismo", color: Palette.moss)
+        case .unknown: EmptyView()
+        }
     }
 }
 

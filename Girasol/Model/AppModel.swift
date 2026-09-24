@@ -11,7 +11,7 @@ final class AppModel {
     var status: Status = .idle
     var weather: WeatherSnapshot?
     var summary: ExposureSummary?
-    var sunNow = false
+    var sunPresence = SunPresence.unknown
     var isCached = false
 
     private let location = LocationService()
@@ -102,7 +102,7 @@ final class AppModel {
     func recompute() {
         guard let w = weather else { return }
         summary = ExposureSummary.build(daylight: reading.minutesByHour, curve: w.curve, skin: settings.skin, protection: settings.sunscreen.protectionFactor)
-        sunNow = reading.lastSampleEnd.map { now.timeIntervalSince($0) < 20 * 60 } ?? false
+        sunPresence = SunPresence.now(lastSampleEnd: reading.lastSampleEnd, at: now)
         if let f = summary?.fraction, !demo { HabitStore.shared.recordSun(fraction: f, day: Calendar.current.startOfDay(for: now), profile: ProfileStore.shared.profile) }
     }
 

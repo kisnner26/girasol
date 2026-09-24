@@ -19,6 +19,7 @@ final class HealthModel {
     var sleepInsight: SleepInsight?
     var standHours: [StandHour] = []
     var travelNotice: String?
+    var hrvTrend: HRVTrend?
 
     var profile: Profile { profiles.profile }
     var now: Date { Date() }
@@ -53,7 +54,8 @@ final class HealthModel {
         async let s = health.dailySteps(days: 7, now: today)
         async let mindful = health.dailyMindful(days: 7, now: today)
         async let segments = health.sleep(days: 15, now: today)
-        let (water, steps, mindfulMinutes, sleep) = await (w, s, mindful, segments)
+        async let hrv = health.heartRateVariability(days: 14, now: today)
+        let (water, steps, mindfulMinutes, sleep, hrvSamples) = await (w, s, mindful, segments, hrv)
         HabitStore.shared.merge(water: water, steps: steps, mindfulMinutes: mindfulMinutes, profile: profile)
         history = HabitStore.shared.records
 
@@ -63,6 +65,7 @@ final class HealthModel {
             guard let day = Calendar.current.date(bySettingHour: 0, minute: 0, second: 0, of: n.day) else { return nil }
             return (n, water[day] ?? 0, steps[day] ?? 0)
         })
+        hrvTrend = HeartVariability.trend(samples: hrvSamples, today: today)
     }
 
     var streak: Int { Streaks.current(history, today: now) }

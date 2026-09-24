@@ -232,6 +232,29 @@ final class AdviceTests: XCTestCase {
     }
 }
 
+final class SunPresenceTests: XCTestCase {
+    private let now = Date(timeIntervalSince1970: 1_800_000_000)
+
+    func testUnknownWithoutAnySample() {
+        XCTAssertEqual(SunPresence.now(lastSampleEnd: nil, at: now), .unknown)
+    }
+
+    func testDirectWithinTheFreshWindow() {
+        XCTAssertEqual(SunPresence.now(lastSampleEnd: now.addingTimeInterval(-5 * 60), at: now), .direct)
+        XCTAssertEqual(SunPresence.now(lastSampleEnd: now.addingTimeInterval(-19 * 60 - 59), at: now), .direct)
+    }
+
+    func testShadeOnceTheSampleGoesStale() {
+        XCTAssertEqual(SunPresence.now(lastSampleEnd: now.addingTimeInterval(-20 * 60), at: now), .shade)
+        XCTAssertEqual(SunPresence.now(lastSampleEnd: now.addingTimeInterval(-3600), at: now), .shade)
+    }
+
+    func testCustomFreshWindow() {
+        XCTAssertEqual(SunPresence.now(lastSampleEnd: now.addingTimeInterval(-600), at: now, freshWithin: 300), .shade)
+        XCTAssertEqual(SunPresence.now(lastSampleEnd: now.addingTimeInterval(-100), at: now, freshWithin: 300), .direct)
+    }
+}
+
 final class AlertTests: XCTestCase {
     private let day = hours([("06:00", 0), ("07:00", 0.5), ("08:00", 1.5), ("09:00", 3.2), ("10:00", 5), ("11:00", 6.5),
                              ("12:00", 8.5), ("13:00", 9), ("14:00", 8), ("15:00", 6), ("16:00", 4), ("17:00", 2.5), ("18:00", 1)])
