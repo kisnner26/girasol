@@ -202,6 +202,59 @@ final class AdviceTests: XCTestCase {
         XCTAssertTrue(a(1, temp: 5).detail.contains("frío"))
         XCTAssertFalse(a(1, temp: 25).detail.contains("hidrátate"))
     }
+
+    func testColdRiskLevels() {
+        XCTAssertEqual(ColdRisk(apparent: -4.9), .none)
+        XCTAssertEqual(ColdRisk(apparent: -5), .none)
+        XCTAssertEqual(ColdRisk(apparent: -5.1), .caution)
+        XCTAssertEqual(ColdRisk(apparent: -14.9), .caution)
+        XCTAssertEqual(ColdRisk(apparent: -15), .caution)
+        XCTAssertEqual(ColdRisk(apparent: -15.1), .high)
+        XCTAssertEqual(ColdRisk(apparent: -24.9), .high)
+        XCTAssertEqual(ColdRisk(apparent: -25), .high)
+        XCTAssertEqual(ColdRisk(apparent: -25.1), .extreme)
+        XCTAssertTrue(ColdRisk.none < .caution && ColdRisk.caution < .high && ColdRisk.high < .extreme)
+    }
+
+    func testAdviceWithColdRisk() {
+        XCTAssertEqual(a(1, temp: -6).coldRisk, .caution)
+        XCTAssertEqual(a(1, temp: -6).level, .care, "aviso de congelación sube el nivel al menos a cuidado")
+        XCTAssertTrue(a(1, temp: -6).detail.contains("congelarse"))
+        XCTAssertEqual(a(1, temp: -20).level, .avoid)
+        XCTAssertEqual(a(12, temp: -20).level, .stay, "no se rebaja un nivel ya mas alto")
+        XCTAssertEqual(a(1, temp: 10).coldRisk, .none)
+    }
+
+    func testColdRiskAtNightStillWarns() {
+        let n = a(9, temp: -10, day: false, used: 0)
+        XCTAssertEqual(n.level, .avoid)
+        XCTAssertTrue(n.detail.contains("congelarse"))
+        let mild = a(9, temp: 5, day: false, used: 0)
+        XCTAssertEqual(mild.level, .ok)
+    }
+}
+
+final class SunPresenceTests: XCTestCase {
+    private let now = Date(timeIntervalSince1970: 1_800_000_000)
+
+    func testUnknownWithoutAnySample() {
+        XCTAssertEqual(SunPresence.now(lastSampleEnd: nil, at: now), .unknown)
+    }
+
+    func testDirectWithinTheFreshWindow() {
+        XCTAssertEqual(SunPresence.now(lastSampleEnd: now.addingTimeInterval(-5 * 60), at: now), .direct)
+        XCTAssertEqual(SunPresence.now(lastSampleEnd: now.addingTimeInterval(-19 * 60 - 59), at: now), .direct)
+    }
+
+    func testShadeOnceTheSampleGoesStale() {
+        XCTAssertEqual(SunPresence.now(lastSampleEnd: now.addingTimeInterval(-20 * 60), at: now), .shade)
+        XCTAssertEqual(SunPresence.now(lastSampleEnd: now.addingTimeInterval(-3600), at: now), .shade)
+    }
+
+    func testCustomFreshWindow() {
+        XCTAssertEqual(SunPresence.now(lastSampleEnd: now.addingTimeInterval(-600), at: now, freshWithin: 300), .shade)
+        XCTAssertEqual(SunPresence.now(lastSampleEnd: now.addingTimeInterval(-100), at: now, freshWithin: 300), .direct)
+    }
 }
 
 final class AlertTests: XCTestCase {

@@ -21,6 +21,10 @@ struct BodyView: View {
 
                 oxygenBlock
 
+                hrvBlock
+
+                postureBlock
+
                 Text("actividad: \(numberText(health.totals.activeKcal)) kcal activas · \(Int(health.totals.mindfulMinutes.rounded())) min de calma")
                     .font(.serif(10, italic: true)).foregroundStyle(Palette.mid)
 
@@ -52,6 +56,25 @@ struct BodyView: View {
                 Text("ábrela con la app Oxígeno del reloj, quieto y en reposo. Apple no permite que otra app inicie la medición.")
                     .font(.serif(10, italic: true)).foregroundStyle(Palette.mid)
             }
+        }
+    }
+
+    @ViewBuilder private var hrvBlock: some View {
+        if let t = health.hrvTrend {
+            let delta = Int(t.deltaMs.rounded())
+            let deltaText = delta == 0 ? loc("igual que la semana pasada")
+                : (delta > 0 ? loc("+\(delta) ms que la semana pasada") : loc("\(delta) ms que la semana pasada"))
+            metric("variabilidad del pulso", "\(Int(t.recentAvgMs.rounded())) ms", deltaText) {
+                LineIcon(kind: .heart).frame(width: 26, height: 26)
+            }
+        }
+    }
+
+    @ViewBuilder private var postureBlock: some View {
+        let h = health.sedentaryHours
+        if h >= 1 {
+            metric("postura", h == 1 ? loc("1 hora sentado") : loc("\(h) horas sentado"),
+                   "levántate y estira cuello y muñecas") { LineIcon(kind: .target).frame(width: 26, height: 26) }
         }
     }
 

@@ -8,9 +8,10 @@ public struct WeatherSnapshot: Sendable, Equatable {
         public let uvIndex: Double
         public let cloudCover: Double
         public let isDay: Bool
-        public init(time: Date, temperature: Double, apparentTemperature: Double, uvIndex: Double, cloudCover: Double, isDay: Bool) {
+        public let windSpeedKph: Double
+        public init(time: Date, temperature: Double, apparentTemperature: Double, uvIndex: Double, cloudCover: Double, isDay: Bool, windSpeedKph: Double = 0) {
             self.time = time; self.temperature = temperature; self.apparentTemperature = apparentTemperature
-            self.uvIndex = uvIndex; self.cloudCover = cloudCover; self.isDay = isDay
+            self.uvIndex = uvIndex; self.cloudCover = cloudCover; self.isDay = isDay; self.windSpeedKph = windSpeedKph
         }
     }
 
@@ -19,8 +20,10 @@ public struct WeatherSnapshot: Sendable, Equatable {
         public let uvIndex: Double
         public let temperature: Double
         public let apparentTemperature: Double
-        public init(start: Date, uvIndex: Double, temperature: Double, apparentTemperature: Double) {
+        public let windSpeedKph: Double
+        public init(start: Date, uvIndex: Double, temperature: Double, apparentTemperature: Double, windSpeedKph: Double = 0) {
             self.start = start; self.uvIndex = uvIndex; self.temperature = temperature; self.apparentTemperature = apparentTemperature
+            self.windSpeedKph = windSpeedKph
         }
     }
 
@@ -47,8 +50,8 @@ public enum OpenMeteo {
         c.queryItems = [
             .init(name: "latitude", value: String(format: "%.2f", latitude)),
             .init(name: "longitude", value: String(format: "%.2f", longitude)),
-            .init(name: "current", value: "temperature_2m,apparent_temperature,uv_index,cloud_cover,is_day"),
-            .init(name: "hourly", value: "uv_index,temperature_2m,apparent_temperature"),
+            .init(name: "current", value: "temperature_2m,apparent_temperature,uv_index,cloud_cover,is_day,wind_speed_10m"),
+            .init(name: "hourly", value: "uv_index,temperature_2m,apparent_temperature,wind_speed_10m"),
             .init(name: "timezone", value: "auto"),
             .init(name: "forecast_days", value: "1"),
         ]
@@ -63,12 +66,14 @@ public enum OpenMeteo {
             let uv_index: Double
             let cloud_cover: Double
             let is_day: Int
+            let wind_speed_10m: Double?
         }
         struct Hourly: Decodable {
             let time: [String]
             let uv_index: [Double?]
             let temperature_2m: [Double?]
             let apparent_temperature: [Double?]
+            let wind_speed_10m: [Double?]?
         }
         let utc_offset_seconds: Int
         let current: Current
@@ -92,14 +97,16 @@ public enum OpenMeteo {
             let uv = r.hourly.uv_index.indices.contains(i) ? r.hourly.uv_index[i] : nil
             let temp = r.hourly.temperature_2m.indices.contains(i) ? r.hourly.temperature_2m[i] : nil
             let feel = r.hourly.apparent_temperature.indices.contains(i) ? r.hourly.apparent_temperature[i] : nil
+            let wind = (r.hourly.wind_speed_10m?.indices.contains(i) ?? false) ? r.hourly.wind_speed_10m?[i] : nil
             guard let uv, let temp else { continue }   // un hueco de la api no debe inventar un dato
-            hours.append(.init(start: d, uvIndex: uv, temperature: temp, apparentTemperature: feel ?? temp))
+            hours.append(.init(start: d, uvIndex: uv, temperature: temp, apparentTemperature: feel ?? temp, windSpeedKph: wind ?? 0))
         }
         guard !hours.isEmpty else { throw Failure.malformed("sin datos por hora") }
 
         let current = WeatherSnapshot.Current(
             time: now, temperature: r.current.temperature_2m, apparentTemperature: r.current.apparent_temperature,
-            uvIndex: r.current.uv_index, cloudCover: r.current.cloud_cover, isDay: r.current.is_day == 1)
+            uvIndex: r.current.uv_index, cloudCover: r.current.cloud_cover, isDay: r.current.is_day == 1,
+            windSpeedKph: r.current.wind_speed_10m ?? 0)
         return WeatherSnapshot(current: current, hours: hours, utcOffset: r.utc_offset_seconds, fetchedAt: fetchedAt)
     }
 }

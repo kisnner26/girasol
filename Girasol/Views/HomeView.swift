@@ -4,7 +4,7 @@ import SunKit
 
 enum Route: Hashable {
     case sun, water, food, body, breathe, games, settings
-    case week, sleep, airBasketball, darts, pistol, tennis, bubbles, calibrate
+    case week, sleep, airBasketball, darts, pistol, tennis, bubbles, calibrate, focus
 }
 
 struct HomeView: View {
@@ -19,6 +19,12 @@ struct HomeView: View {
                     .font(.serif(16, italic: true)).foregroundStyle(Palette.ink)
                     .multilineTextAlignment(.center).lineLimit(2).minimumScaleFactor(0.8)
                 Caption(verbatim: dayText)
+
+                if let notice = health.travelNotice {
+                    Text(notice).font(.serif(9, italic: true)).foregroundStyle(Palette.rose)
+                        .multilineTextAlignment(.center)
+                        .onTapGesture { health.travelNotice = nil }
+                }
 
                 ZStack {
                     Ring(fraction: health.waterFraction, tint: Palette.moss, width: 5).frame(width: 104, height: 104)
@@ -55,6 +61,9 @@ struct HomeView: View {
                 }
                 NavigationLink(value: Route.breathe) {
                     HomeRow(icon: .breath, title: "respirar", detail: breatheDetail)
+                }
+                NavigationLink(value: Route.focus) {
+                    HomeRow(icon: .target, title: "concentración", detail: "temporizador con descansos")
                 }
                 NavigationLink(value: Route.games) {
                     HomeRow(icon: .target, title: "juegos", detail: "baloncesto · dardos · pistola · tenis")

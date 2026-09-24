@@ -42,6 +42,7 @@ struct RootView: View {
         async let s: () = sun.refreshIfStale()
         async let h: () = health.refresh()
         _ = await (s, h)
+        await health.checkTravel(utcOffsetSeconds: sun.weather?.utcOffset)
     }
 }
 
@@ -58,6 +59,7 @@ struct MainStack: View {
                     case .food: FoodView()
                     case .body: BodyView()
                     case .breathe: BreatheView()
+                    case .focus: FocusView()
                     case .games: GamesView()
                     case .settings: SettingsView()
                     case .week: WeekView()

@@ -23,20 +23,46 @@ public enum AdviceLevel: Int, Comparable, Sendable {
     public static func < (a: AdviceLevel, b: AdviceLevel) -> Bool { a.rawValue < b.rawValue }
 }
 
+/// riesgo de congelacion en piel expuesta, segun la sensacion termica (open-meteo ya incluye el viento en `apparent_temperature`).
+public enum ColdRisk: Int, Comparable, Sendable {
+    case none, caution, high, extreme
+
+    public init(apparent: Double) {
+        if apparent < -25 { self = .extreme }
+        else if apparent < -15 { self = .high }
+        else if apparent < -5 { self = .caution }
+        else { self = .none }
+    }
+
+    public static func < (a: ColdRisk, b: ColdRisk) -> Bool { a.rawValue < b.rawValue }
+
+    public var message: String {
+        switch self {
+        case .none: L10n.tr("sin riesgo de congelación")
+        case .caution: L10n.tr("piel expuesta puede congelarse en 30-60 min; cúbrete")
+        case .high: L10n.tr("piel expuesta puede congelarse en 10-30 min; abrígate bien")
+        case .extreme: L10n.tr("piel expuesta puede congelarse en menos de 10 min; evita salir así")
+        }
+    }
+}
+
 public struct Advice: Sendable, Equatable {
     public let level: AdviceLevel
     public let headline: String
     public let detail: String
     public let heat: HeatLevel
+    public let coldRisk: ColdRisk
 }
 
 /// "¿puedo salir ahora?" a partir del uv, el calor y lo que ya llevas recibido hoy.
 public enum Advisor {
     public static func advice(uvi: Double, apparent: Double, isDay: Bool, usedFraction: Double) -> Advice {
         let heat = HeatLevel(apparent: apparent)
+        let cold = ColdRisk(apparent: apparent)
 
         if !isDay {
-            return Advice(level: .ok, headline: L10n.tr("es de noche"), detail: L10n.tr("sin radiación uv ahora"), heat: heat)
+            return Advice(level: cold >= .caution ? .avoid : .ok, headline: L10n.tr("es de noche"),
+                          detail: cold >= .caution ? cold.message : L10n.tr("sin radiación uv ahora"), heat: heat, coldRisk: cold)
         }
 
         var level: AdviceLevel
@@ -72,6 +98,16 @@ public enum Advisor {
         default:
             break
         }
-        return Advice(level: level, headline: headline, detail: detail, heat: heat)
+
+        switch cold {
+        case .none: break
+        case .caution:
+            level = max(level, .care)
+            detail += "; " + cold.message
+        case .high, .extreme:
+            level = max(level, .avoid)
+            detail += "; " + cold.message
+        }
+        return Advice(level: level, headline: headline, detail: detail, heat: heat, coldRisk: cold)
     }
 }

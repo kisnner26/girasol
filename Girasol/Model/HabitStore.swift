@@ -14,13 +14,19 @@ final class HabitStore {
     }
 
     /// combina lo leido de Salud con lo que ya habia guardado: las metas de dias pasados se conservan y el uv solo sube.
-    func merge(water: [Date: Int], steps: [Date: Int], profile: Profile, calendar: Calendar = .current) {
+    func merge(water: [Date: Int], steps: [Date: Int], mindfulMinutes: [Date: Double] = [:], profile: Profile, calendar: Calendar = .current) {
         var byDay = Dictionary(records.map { ($0.day, $0) }, uniquingKeysWith: { _, new in new })
-        for day in Set(water.keys).union(steps.keys) {
-            var r = byDay[day] ?? DayRecord(day: day, waterMl: 0, waterGoal: profile.waterGoalMl, steps: 0, stepGoal: profile.stepGoal)
+        for day in Set(water.keys).union(steps.keys).union(mindfulMinutes.keys) {
+            var r = byDay[day] ?? DayRecord(day: day, waterMl: 0, waterGoal: profile.waterGoalMl, steps: 0, stepGoal: profile.stepGoal,
+                                            mindfulGoal: Double(profile.mindfulGoalMinutes))
             r.waterMl = water[day] ?? r.waterMl
             r.steps = steps[day] ?? r.steps
-            if calendar.isDateInToday(day) { r.waterGoal = profile.waterGoalMl; r.stepGoal = profile.stepGoal }
+            r.mindfulMinutes = mindfulMinutes[day] ?? r.mindfulMinutes
+            if calendar.isDateInToday(day) {
+                r.waterGoal = profile.waterGoalMl
+                r.stepGoal = profile.stepGoal
+                r.mindfulGoal = Double(profile.mindfulGoalMinutes)
+            }
             byDay[day] = r
         }
         save(byDay)

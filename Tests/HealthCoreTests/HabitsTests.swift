@@ -78,6 +78,28 @@ final class StreakTests: XCTestCase {
         let r = rec(20, sun: 0.5)
         XCTAssertEqual(try JSONDecoder().decode(DayRecord.self, from: JSONEncoder().encode(r)), r)
     }
+
+    func testMindfulGoalOfZeroIsAlwaysMet() {
+        XCTAssertTrue(DayRecord(day: day(1), waterMl: 2000, waterGoal: 2000, steps: 8000, stepGoal: 8000).mindfulMet)
+        XCTAssertTrue(DayRecord(day: day(1), waterMl: 2000, waterGoal: 2000, steps: 8000, stepGoal: 8000).allMet)
+    }
+
+    func testMindfulGoalMustBeReached() {
+        var r = DayRecord(day: day(1), waterMl: 2000, waterGoal: 2000, steps: 8000, stepGoal: 8000, mindfulMinutes: 4, mindfulGoal: 5)
+        XCTAssertFalse(r.mindfulMet)
+        XCTAssertFalse(r.allMet)
+        r.mindfulMinutes = 5
+        XCTAssertTrue(r.mindfulMet)
+        XCTAssertTrue(r.allMet)
+    }
+
+    func testOldRecordsWithoutMindfulnessDecodeAsNotRequired() throws {
+        // json guardado antes de que existiera mindfulness: sin esos campos
+        let old = try JSONDecoder().decode(DayRecord.self, from: Data(#"{"day":0,"waterMl":2000,"waterGoal":2000,"steps":8000,"stepGoal":8000}"#.utf8))
+        XCTAssertEqual(old.mindfulGoal, 0)
+        XCTAssertTrue(old.mindfulMet)
+        XCTAssertTrue(old.allMet)
+    }
 }
 
 final class SleepTests: XCTestCase {
@@ -141,6 +163,112 @@ final class SleepTests: XCTestCase {
         let i = try XCTUnwrap(SleepInsight.make([night(8, water: 1000, steps: 4000), night(8, water: 1000, steps: 4000),
                                                  night(5, water: 2000, steps: 9000), night(5, water: 2000, steps: 9000)]))
         XCTAssertEqual(i.waterDifferenceMl, -1000); XCTAssertEqual(i.stepsDifference, -5000)
+    }
+}
+
+final class PostureTests: XCTestCase {
+    private func stand(_ hour: Int, _ stood: Bool) -> StandHour { StandHour(hourStart: day(20, hour: hour), stood: stood) }
+
+    func testCountsBackFromCurrentHourUntilStoodOrNoData() {
+        let now = day(20, hour: 14).addingTimeInterval(30 * 60)
+        let hours = [stand(11, true), stand(12, false), stand(13, false), stand(14, false)]
+        XCTAssertEqual(Posture.consecutiveSedentaryHours(hours, now: now, calendar: cal), 3)
+    }
+
+    func testStandingResetsTheCount() {
+        let now = day(20, hour: 14)
+        let hours = [stand(12, false), stand(13, true), stand(14, false)]
+        XCTAssertEqual(Posture.consecutiveSedentaryHours(hours, now: now, calendar: cal), 1)
+    }
+
+    func testMissingCurrentHourDataMeansZero() {
+        let now = day(20, hour: 15)
+        let hours = [stand(12, false), stand(13, false), stand(14, false)]
+        XCTAssertEqual(Posture.consecutiveSedentaryHours(hours, now: now, calendar: cal), 0, "sin dato de la hora en curso no se asume nada")
+    }
+
+    func testStopsAtTheFirstHourWithoutData() {
+        let now = day(20, hour: 14)
+        let hours = [stand(14, false), stand(13, false)] // falta la de las 12
+        XCTAssertEqual(Posture.consecutiveSedentaryHours(hours, now: now, calendar: cal), 2)
+    }
+
+    func testShouldRemindOnlyAtEachThresholdBlock() {
+        XCTAssertFalse(Posture.shouldRemind(consecutiveHours: 1, thresholdHours: 2))
+        XCTAssertTrue(Posture.shouldRemind(consecutiveHours: 2, thresholdHours: 2))
+        XCTAssertFalse(Posture.shouldRemind(consecutiveHours: 3, thresholdHours: 2))
+        XCTAssertTrue(Posture.shouldRemind(consecutiveHours: 4, thresholdHours: 2))
+        XCTAssertFalse(Posture.shouldRemind(consecutiveHours: 0, thresholdHours: 2))
+    }
+
+    func testMessageText() {
+        XCTAssertTrue(Posture.body(hours: 1).contains("1 hora"))
+        XCTAssertTrue(Posture.body(hours: 2).contains("2 horas"))
+    }
+}
+
+final class WeeklySummaryTests: XCTestCase {
+    private func night(_ d: Int, _ h: Double) -> SleepNight { SleepNight(day: day(d), hours: h) }
+
+    func testComparesThisWeekAgainstLastWeek() {
+        // esta semana (15..20, 6 dias): agua 2500, pasos 9000; semana pasada (8..13, 6 dias): agua 2000, pasos 8000
+        let thisWeek = (15...20).map { rec($0, water: 2500, steps: 9000) }
+        let lastWeek = (8...13).map { rec($0, water: 2000, steps: 8000) }
+        let report = try? XCTUnwrap(WeeklySummary.make(records: thisWeek + lastWeek, nights: [], today: day(20), calendar: cal))
+        XCTAssertEqual(report?.waterMl, 2500)
+        XCTAssertEqual(report?.waterDeltaMl, 500)
+        XCTAssertEqual(report?.steps, 9000)
+        XCTAssertEqual(report?.stepsDelta, 1000)
+        XCTAssertFalse(report?.hasSleepData ?? true, "sin noches, sin dato de sueño")
+    }
+
+    func testIncludesSleepWhenBothWeeksHaveIt() throws {
+        let thisWeek = (15...20).map { rec($0) }
+        let lastWeek = (8...13).map { rec($0) }
+        let nights = (15...20).map { night($0, 8) } + (8...13).map { night($0, 6) }
+        let report = try XCTUnwrap(WeeklySummary.make(records: thisWeek + lastWeek, nights: nights, today: day(20), calendar: cal))
+        XCTAssertTrue(report.hasSleepData)
+        XCTAssertEqual(report.sleepHours, 8, accuracy: 1e-9)
+        XCTAssertEqual(report.sleepDeltaHours, 2, accuracy: 1e-9)
+    }
+
+    func testNilWithoutEnoughDaysInEitherWeek() {
+        let thisWeek = (18...20).map { rec($0) }      // solo 3 dias
+        let lastWeek = (8...9).map { rec($0) }         // solo 2 dias: no alcanza
+        XCTAssertNil(WeeklySummary.make(records: thisWeek + lastWeek, nights: [], today: day(20), calendar: cal))
+        XCTAssertNotNil(WeeklySummary.make(records: thisWeek + lastWeek, nights: [], today: day(20), minDays: 2, calendar: cal))
+    }
+
+    func testNegativeDeltaWhenThingsGotWorse() {
+        let thisWeek = (15...20).map { rec($0, water: 1800, steps: 6000) }
+        let lastWeek = (8...13).map { rec($0, water: 2200, steps: 9000) }
+        let report = try? XCTUnwrap(WeeklySummary.make(records: thisWeek + lastWeek, nights: [], today: day(20), calendar: cal))
+        XCTAssertEqual(report?.waterDeltaMl, -400)
+        XCTAssertEqual(report?.stepsDelta, -3000)
+    }
+}
+
+final class TravelModeTests: XCTestCase {
+    func testHourShift() {
+        XCTAssertEqual(TravelMode.hourShift(fromOffsetSeconds: -21600, toOffsetSeconds: -21600), 0)
+        XCTAssertEqual(TravelMode.hourShift(fromOffsetSeconds: -21600, toOffsetSeconds: 0), 6)
+        XCTAssertEqual(TravelMode.hourShift(fromOffsetSeconds: 3600, toOffsetSeconds: -28800), -9)
+    }
+
+    func testIsTravelIgnoresDaylightSavingChanges() {
+        XCTAssertFalse(TravelMode.isTravel(hourShift: 1))
+        XCTAssertFalse(TravelMode.isTravel(hourShift: -1))
+        XCTAssertFalse(TravelMode.isTravel(hourShift: 0))
+        XCTAssertTrue(TravelMode.isTravel(hourShift: 2))
+        XCTAssertTrue(TravelMode.isTravel(hourShift: -5))
+    }
+
+    func testShiftedHourWrapsAroundTheClock() {
+        XCTAssertEqual(TravelMode.shiftedHour(8, by: 3), 11)
+        XCTAssertEqual(TravelMode.shiftedHour(22, by: 3), 1)
+        XCTAssertEqual(TravelMode.shiftedHour(2, by: -5), 21)
+        XCTAssertEqual(TravelMode.shiftedHour(8, by: 0), 8)
+        XCTAssertEqual(TravelMode.shiftedHour(0, by: -1), 23)
     }
 }
 

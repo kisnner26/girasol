@@ -66,6 +66,20 @@ final class NotificationService: NSObject, UNUserNotificationCenterDelegate {
         center.removeAllPendingNotificationRequests()
     }
 
+    /// avisa a estirar una sola vez por bloque de horas sentado; se reinicia solo (una hora de pie borra el bloque anterior).
+    func notifyPosture(consecutiveHours: Int, now: Date) async {
+        let key = "girasol.posture.lastBlock"
+        let bucket = Calendar.current.startOfDay(for: now).timeIntervalSince1970 * 100 + Double(consecutiveHours)
+        guard bucket != UserDefaults.standard.double(forKey: key), await requestAccess() else { return }
+        UserDefaults.standard.set(bucket, forKey: key)
+        let content = UNMutableNotificationContent()
+        content.title = Posture.title()
+        content.body = Posture.body(hours: consecutiveHours)
+        content.sound = .default
+        try? await center.add(UNNotificationRequest(identifier: "girasol.posture", content: content,
+                                                    trigger: UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)))
+    }
+
     /// avisa una sola vez por etapa y por dia (cerca del limite, limite alcanzado).
     func notifyLimit(_ stage: LimitStage, fraction: Double, now: Date) async {
         let day = Calendar.current.startOfDay(for: now).timeIntervalSince1970

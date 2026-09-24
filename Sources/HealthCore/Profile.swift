@@ -78,12 +78,23 @@ public struct Profile: Codable, Equatable, Sendable {
     public var haptics = true
     public var onboarded = false
 
+    /// minutos de respiracion/mindfulness que cuentan para la racha del dia; 0 desactiva ese requisito.
+    public var mindfulGoalMinutes = 5
+
+    public var postureReminders = true
+    /// horas seguidas sentado antes de avisar a estirar.
+    public var sedentaryThresholdHours = 2
+
+    public var focusPattern = "classic"
+    public var focusMinutes = 30
+
     public init() {}
 
     private enum CodingKeys: String, CodingKey {
         case name, sex, birthYear, heightCm, weightKg, activity, objective, waterGoalMl, glassMl, kcalGoal, addActivityToKcal, stepGoal
         case volumeUnit, temperatureUnit, waterReminders, reminderEveryHours, wakeHour, sleepHour
-        case breathingPattern, breathingMinutes, sounds, haptics, onboarded
+        case breathingPattern, breathingMinutes, sounds, haptics, onboarded, mindfulGoalMinutes
+        case postureReminders, sedentaryThresholdHours, focusPattern, focusMinutes
     }
 
     /// tolera datos guardados por versiones anteriores: lo que falte queda con su valor por defecto.
@@ -113,6 +124,11 @@ public struct Profile: Codable, Equatable, Sendable {
         sounds = try c.decodeIfPresent(Bool.self, forKey: .sounds) ?? d.sounds
         haptics = try c.decodeIfPresent(Bool.self, forKey: .haptics) ?? d.haptics
         onboarded = try c.decodeIfPresent(Bool.self, forKey: .onboarded) ?? d.onboarded
+        mindfulGoalMinutes = try c.decodeIfPresent(Int.self, forKey: .mindfulGoalMinutes) ?? d.mindfulGoalMinutes
+        postureReminders = try c.decodeIfPresent(Bool.self, forKey: .postureReminders) ?? d.postureReminders
+        sedentaryThresholdHours = try c.decodeIfPresent(Int.self, forKey: .sedentaryThresholdHours) ?? d.sedentaryThresholdHours
+        focusPattern = try c.decodeIfPresent(String.self, forKey: .focusPattern) ?? d.focusPattern
+        focusMinutes = try c.decodeIfPresent(Int.self, forKey: .focusMinutes) ?? d.focusMinutes
     }
 
     /// nombre listo para mostrar: sin espacios de sobra y con tope de largo.
@@ -132,6 +148,9 @@ public struct Profile: Codable, Equatable, Sendable {
         p.wakeHour = min(12, max(4, wakeHour))
         p.sleepHour = min(23, max(p.wakeHour + 6, sleepHour))
         p.breathingMinutes = min(5, max(1, breathingMinutes))
+        p.mindfulGoalMinutes = min(60, max(0, mindfulGoalMinutes))
+        p.sedentaryThresholdHours = min(6, max(1, sedentaryThresholdHours))
+        p.focusMinutes = min(120, max(10, focusMinutes))
         if let h = heightCm { p.heightCm = min(230, max(100, h)) }
         if let w = weightKg { p.weightKg = min(250, max(25, w)) }
         return p

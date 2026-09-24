@@ -15,7 +15,11 @@ final class HealthModel {
     var loaded = false
     var history: [DayRecord] = HabitStore.shared.records
     var nights: [SleepNight] = []
+    var nightsTwoWeeks: [SleepNight] = []
     var sleepInsight: SleepInsight?
+    var standHours: [StandHour] = []
+    var travelNotice: String?
+    var hrvTrend: HRVTrend?
 
     var profile: Profile { profiles.profile }
     var now: Date { Date() }
@@ -40,6 +44,7 @@ final class HealthModel {
         syncWidgets()
         await refreshHabits()
         await scheduleWaterReminders()
+        await checkPosture()
     }
 
     /// racha y sueño: ultimos 7 dias de Salud.
@@ -47,21 +52,62 @@ final class HealthModel {
         let today = now
         async let w = health.dailyWater(days: 7, now: today)
         async let s = health.dailySteps(days: 7, now: today)
-        async let segments = health.sleep(days: 8, now: today)
-        let (water, steps, sleep) = await (w, s, segments)
-        HabitStore.shared.merge(water: water, steps: steps, profile: profile)
+        async let mindful = health.dailyMindful(days: 7, now: today)
+        async let segments = health.sleep(days: 15, now: today)
+        async let hrv = health.heartRateVariability(days: 14, now: today)
+        let (water, steps, mindfulMinutes, sleep, hrvSamples) = await (w, s, mindful, segments, hrv)
+        HabitStore.shared.merge(water: water, steps: steps, mindfulMinutes: mindfulMinutes, profile: profile)
         history = HabitStore.shared.records
 
         nights = Sleep.nights(sleep, today: today)
+        nightsTwoWeeks = Sleep.nights(sleep, days: 14, today: today)
         sleepInsight = SleepInsight.make(nights.compactMap { n in
             guard let day = Calendar.current.date(bySettingHour: 0, minute: 0, second: 0, of: n.day) else { return nil }
             return (n, water[day] ?? 0, steps[day] ?? 0)
         })
+        hrvTrend = HeartVariability.trend(samples: hrvSamples, today: today)
     }
 
     var streak: Int { Streaks.current(history, today: now) }
     var bestStreak: Int { Streaks.best(history) }
     var lastNight: SleepNight? { nights.last(where: { $0.hours > 0 }) }
+
+    var sedentaryHours: Int { Posture.consecutiveSedentaryHours(standHours, now: now) }
+
+    /// esta semana contra la anterior: agua, pasos y sueño, sin sacar conclusiones de causa.
+    var weeklyReport: WeeklyReport? { WeeklySummary.make(records: history, nights: nightsTwoWeeks, today: now) }
+
+    /// llevas mucho rato sentado: consulta Salud y avisa si toca (una vez por bloque de horas).
+    func checkPosture() async {
+        guard profile.postureReminders else { return }
+        standHours = await health.standHours(now: now)
+        let hours = sedentaryHours
+        if Posture.shouldRemind(consecutiveHours: hours, thresholdHours: profile.sedentaryThresholdHours) {
+            await notifications.notifyPosture(consecutiveHours: hours, now: now)
+        }
+    }
+
+    /// si el desfase utc de donde estas cambio de golpe (un vuelo), corre despertar/dormir el mismo numero de horas.
+    /// un cambio de 1 h (horario de verano) se ignora.
+    func checkTravel(utcOffsetSeconds: Int?) async {
+        guard let offset = utcOffsetSeconds else { return }
+        let key = "girasol.lastUtcOffset"
+        guard let last = UserDefaults.standard.object(forKey: key) as? Int else {
+            UserDefaults.standard.set(offset, forKey: key)
+            return
+        }
+        guard last != offset else { return }
+        UserDefaults.standard.set(offset, forKey: key)
+        let shift = TravelMode.hourShift(fromOffsetSeconds: last, toOffsetSeconds: offset)
+        guard TravelMode.isTravel(hourShift: shift) else { return }
+
+        var p = profile
+        p.wakeHour = TravelMode.shiftedHour(p.wakeHour, by: shift)
+        p.sleepHour = TravelMode.shiftedHour(p.sleepHour, by: shift)
+        profiles.profile = p.sanitized()
+        travelNotice = loc("modo viaje: ajustamos tus horarios de agua a la nueva zona horaria")
+        await scheduleWaterReminders()
+    }
 
     private func syncWidgets() {
         WidgetSync.totals(totals, profile: profile, kcalRemaining: kcalRemaining)
@@ -95,6 +141,10 @@ final class HealthModel {
     }
 
     func logBreathing(from start: Date, to end: Date) async {
+        if await health.addMindful(start: start, end: end) { totals.mindfulMinutes += end.timeIntervalSince(start) / 60 }
+    }
+
+    func logFocus(from start: Date, to end: Date) async {
         if await health.addMindful(start: start, end: end) { totals.mindfulMinutes += end.timeIntervalSince(start) / 60 }
     }
 

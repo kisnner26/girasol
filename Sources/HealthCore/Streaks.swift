@@ -9,17 +9,41 @@ public struct DayRecord: Codable, Equatable, Sendable {
     public var stepGoal: Int
     /// fraccion de tu limite de uv que llegaste a recibir ese dia; nil si la app no llego a medirlo.
     public var sunFraction: Double?
+    /// minutos de respiracion/mindfulness ese dia (de Salud, incluye lo que registra Girasol).
+    public var mindfulMinutes: Double
+    public var mindfulGoal: Double
 
-    public init(day: Date, waterMl: Int, waterGoal: Int, steps: Int, stepGoal: Int, sunFraction: Double? = nil) {
+    public init(day: Date, waterMl: Int, waterGoal: Int, steps: Int, stepGoal: Int, sunFraction: Double? = nil,
+                mindfulMinutes: Double = 0, mindfulGoal: Double = 0) {
         self.day = day; self.waterMl = waterMl; self.waterGoal = waterGoal
         self.steps = steps; self.stepGoal = stepGoal; self.sunFraction = sunFraction
+        self.mindfulMinutes = mindfulMinutes; self.mindfulGoal = mindfulGoal
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case day, waterMl, waterGoal, steps, stepGoal, sunFraction, mindfulMinutes, mindfulGoal
+    }
+
+    /// tolera registros guardados antes de que existiera mindfulness: sin dato, no cuenta contra la racha.
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        day = try c.decode(Date.self, forKey: .day)
+        waterMl = try c.decode(Int.self, forKey: .waterMl)
+        waterGoal = try c.decode(Int.self, forKey: .waterGoal)
+        steps = try c.decode(Int.self, forKey: .steps)
+        stepGoal = try c.decode(Int.self, forKey: .stepGoal)
+        sunFraction = try c.decodeIfPresent(Double.self, forKey: .sunFraction)
+        mindfulMinutes = try c.decodeIfPresent(Double.self, forKey: .mindfulMinutes) ?? 0
+        mindfulGoal = try c.decodeIfPresent(Double.self, forKey: .mindfulGoal) ?? 0
     }
 
     public var waterMet: Bool { waterGoal > 0 && waterMl >= waterGoal }
     public var stepsMet: Bool { stepGoal > 0 && steps >= stepGoal }
     /// sin dato de uv no se castiga: solo cuenta como fallo si se midio y pasaste tu limite.
     public var sunMet: Bool { (sunFraction ?? 0) < 1 }
-    public var allMet: Bool { waterMet && stepsMet && sunMet }
+    /// sin meta (0) no se exige mindfulness para no romper rachas de dias anteriores a esta funcion.
+    public var mindfulMet: Bool { mindfulGoal <= 0 || mindfulMinutes >= mindfulGoal }
+    public var allMet: Bool { waterMet && stepsMet && sunMet && mindfulMet }
 }
 
 public enum Streaks {

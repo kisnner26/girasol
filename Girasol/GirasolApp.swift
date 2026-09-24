@@ -7,6 +7,7 @@ struct GirasolApp: App {
     @State private var model = AppModel()
     @State private var health = HealthModel()
     @State private var runner = BreathingRunner()
+    @State private var focusRunner = FocusRunner()
 
     init() {
         // los paquetes escriben en español; la app les pone la traduccion segun el idioma del reloj
@@ -19,6 +20,7 @@ struct GirasolApp: App {
                 .environment(model)
                 .environment(health)
                 .environment(runner)
+                .environment(focusRunner)
                 .task { scheduleRefresh() }
         }
         .backgroundTask(.appRefresh("girasol.refresh")) {
