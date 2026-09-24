@@ -29,9 +29,9 @@ public enum ColdRisk: Int, Comparable, Sendable {
 
     public init(apparent: Double) {
         switch apparent {
-        case -5...: self = .none
-        case -15..<(-5): self = .caution
-        case -25..<(-15): self = .high
+        case -5.0...: self = .none
+        case -15.0..<(-5.0): self = .caution
+        case -25.0..<(-15.0): self = .high
         default: self = .extreme
         }
     }
