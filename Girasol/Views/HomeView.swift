@@ -4,7 +4,7 @@ import SunKit
 
 enum Route: Hashable {
     case sun, water, food, body, breathe, games, settings
-    case week, sleep, airBasketball, darts, pistol, tennis, bubbles, calibrate
+    case week, sleep, airBasketball, darts, pistol, tennis, bubbles, calibrate, focus
 }
 
 struct HomeView: View {
@@ -55,6 +55,9 @@ struct HomeView: View {
                 }
                 NavigationLink(value: Route.breathe) {
                     HomeRow(icon: .breath, title: "respirar", detail: breatheDetail)
+                }
+                NavigationLink(value: Route.focus) {
+                    HomeRow(icon: .target, title: "concentración", detail: "temporizador con descansos")
                 }
                 NavigationLink(value: Route.games) {
                     HomeRow(icon: .target, title: "juegos", detail: "baloncesto · dardos · pistola · tenis")

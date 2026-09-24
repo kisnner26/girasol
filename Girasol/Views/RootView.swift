@@ -58,6 +58,7 @@ struct MainStack: View {
                     case .food: FoodView()
                     case .body: BodyView()
                     case .breathe: BreatheView()
+                    case .focus: FocusView()
                     case .games: GamesView()
                     case .settings: SettingsView()
                     case .week: WeekView()
