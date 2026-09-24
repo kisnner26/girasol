@@ -18,6 +18,7 @@ final class HealthModel {
     var nightsTwoWeeks: [SleepNight] = []
     var sleepInsight: SleepInsight?
     var standHours: [StandHour] = []
+    var travelNotice: String?
 
     var profile: Profile { profiles.profile }
     var now: Date { Date() }
@@ -81,6 +82,28 @@ final class HealthModel {
         if Posture.shouldRemind(consecutiveHours: hours, thresholdHours: profile.sedentaryThresholdHours) {
             await notifications.notifyPosture(consecutiveHours: hours, now: now)
         }
+    }
+
+    /// si el desfase utc de donde estas cambio de golpe (un vuelo), corre despertar/dormir el mismo numero de horas.
+    /// un cambio de 1 h (horario de verano) se ignora.
+    func checkTravel(utcOffsetSeconds: Int?) async {
+        guard let offset = utcOffsetSeconds else { return }
+        let key = "girasol.lastUtcOffset"
+        guard let last = UserDefaults.standard.object(forKey: key) as? Int else {
+            UserDefaults.standard.set(offset, forKey: key)
+            return
+        }
+        guard last != offset else { return }
+        UserDefaults.standard.set(offset, forKey: key)
+        let shift = TravelMode.hourShift(fromOffsetSeconds: last, toOffsetSeconds: offset)
+        guard TravelMode.isTravel(hourShift: shift) else { return }
+
+        var p = profile
+        p.wakeHour = TravelMode.shiftedHour(p.wakeHour, by: shift)
+        p.sleepHour = TravelMode.shiftedHour(p.sleepHour, by: shift)
+        profiles.profile = p.sanitized()
+        travelNotice = loc("modo viaje: ajustamos tus horarios de agua a la nueva zona horaria")
+        await scheduleWaterReminders()
     }
 
     private func syncWidgets() {

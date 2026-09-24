@@ -42,6 +42,7 @@ struct RootView: View {
         async let s: () = sun.refreshIfStale()
         async let h: () = health.refresh()
         _ = await (s, h)
+        await health.checkTravel(utcOffsetSeconds: sun.weather?.utcOffset)
     }
 }
 

@@ -20,6 +20,12 @@ struct HomeView: View {
                     .multilineTextAlignment(.center).lineLimit(2).minimumScaleFactor(0.8)
                 Caption(verbatim: dayText)
 
+                if let notice = health.travelNotice {
+                    Text(notice).font(.serif(9, italic: true)).foregroundStyle(Palette.rose)
+                        .multilineTextAlignment(.center)
+                        .onTapGesture { health.travelNotice = nil }
+                }
+
                 ZStack {
                     Ring(fraction: health.waterFraction, tint: Palette.moss, width: 5).frame(width: 104, height: 104)
                     Ring(fraction: health.kcalFraction, tint: Palette.olive, width: 5).frame(width: 82, height: 82)
