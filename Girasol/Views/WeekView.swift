@@ -30,6 +30,10 @@ struct WeekView: View {
                 .padding(.top, 2)
 
                 Hairline().padding(.vertical, 4)
+                NavigationLink(value: Route.weekly) {
+                    Text("resumen de la semana ›").font(.serif(12, italic: true)).foregroundStyle(Palette.ink)
+                }
+                .buttonStyle(.plain)
                 Text("mejor racha: \(health.bestStreak)").font(.serif(12, italic: true)).foregroundStyle(Palette.ink)
                 Text("agua y pasos registrados en Salud; el uv no determina la racha.")
                     .font(.serif(9, italic: true)).foregroundStyle(Palette.faint).multilineTextAlignment(.center)

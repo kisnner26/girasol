@@ -62,6 +62,7 @@ struct MainStack: View {
                     case .games: GamesView()
                     case .settings: SettingsView()
                     case .week: WeekView()
+                    case .weekly: WeeklyView()
                     case .sleep: SleepView()
                     case .airBasketball: AirBasketballView()
                     case .darts: DartsView()
