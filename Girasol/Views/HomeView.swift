@@ -21,6 +21,7 @@ struct HomeView: View {
                     .font(.serif(16, italic: true)).foregroundStyle(Palette.ink)
                     .multilineTextAlignment(.center).lineLimit(2).minimumScaleFactor(0.8)
                 Caption(verbatim: dayText)
+                TravelCard()
 
                 ZStack {
                     Ring(fraction: health.waterFraction, tint: Palette.moss, width: 5).frame(width: 104, height: 104)

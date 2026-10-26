@@ -16,6 +16,9 @@ final class HealthModel {
     var history: [DayRecord] = HabitStore.shared.records
     var nights: [SleepNight] = []
     var sleepInsight: SleepInsight?
+    /// horas de cambio de zona horaria pendientes de responder; `nil` si no hay nada que proponer
+    var travelShift: Int?
+    var travel: TravelMode.Boost? = HealthModel.loadBoost()
 
     var profile: Profile { profiles.profile }
     var now: Date { Date() }
@@ -33,6 +36,7 @@ final class HealthModel {
     // MARK: acciones
 
     func refresh() async {
+        checkTravel()
         totals = await health.today(now: now)
         heart = await health.heart()
         oxygen = await health.oxygen()
@@ -57,6 +61,65 @@ final class HealthModel {
             guard let day = Calendar.current.date(bySettingHour: 0, minute: 0, second: 0, of: n.day) else { return nil }
             return (n, water[day] ?? 0, steps[day] ?? 0)
         })
+    }
+
+    // MARK: modo viaje
+
+    private static let travelBoostKey = "girasol.travel.boost"
+    private static let travelOffsetKey = "girasol.travel.offset"
+
+    private static func loadBoost() -> TravelMode.Boost? {
+        UserDefaults.standard.data(forKey: travelBoostKey).flatMap { try? JSONDecoder().decode(TravelMode.Boost.self, from: $0) }
+    }
+
+    private func rememberOffset() {
+        UserDefaults.standard.set(TimeZone.current.secondsFromGMT(), forKey: Self.travelOffsetKey)
+    }
+
+    /// cierra el aumento si ya vencio y, si no hay uno en curso, mira si la zona horaria cambio lo bastante como para proponerlo.
+    func checkTravel() {
+        if let boost = travel {
+            let outcome = TravelMode.outcome(boost, currentGoalMl: profile.waterGoalMl, now: now)
+            if outcome != .active { finishTravel(outcome) }
+        }
+        guard travel == nil else { travelShift = nil; return }
+        let defaults = UserDefaults.standard
+        guard defaults.object(forKey: Self.travelOffsetKey) != nil else { rememberOffset(); return }
+        travelShift = TravelMode.shiftHours(lastOffset: defaults.integer(forKey: Self.travelOffsetKey), currentOffset: TimeZone.current.secondsFromGMT())
+    }
+
+    func acceptTravel() async {
+        guard travelShift != nil, travel == nil else { return }
+        let boost = TravelMode.start(goalMl: profile.waterGoalMl, now: now)
+        profiles.profile.waterGoalMl = boost.boostedGoalMl
+        travel = boost
+        if let data = try? JSONEncoder().encode(boost) { UserDefaults.standard.set(data, forKey: Self.travelBoostKey) }
+        rememberOffset()
+        travelShift = nil
+        syncWidgets()
+        Haptics.play(.success)
+        await scheduleWaterReminders()
+    }
+
+    func dismissTravel() {
+        rememberOffset()
+        travelShift = nil
+        Haptics.play(.click)
+    }
+
+    func endTravel() async {
+        guard let boost = travel else { return }
+        finishTravel(TravelMode.outcome(boost, currentGoalMl: profile.waterGoalMl, now: now, endingEarly: true))
+        Haptics.play(.click)
+        await scheduleWaterReminders()
+    }
+
+    private func finishTravel(_ outcome: TravelMode.Outcome) {
+        if case .restore(let goal) = outcome { profiles.profile.waterGoalMl = goal }
+        travel = nil
+        UserDefaults.standard.removeObject(forKey: Self.travelBoostKey)
+        rememberOffset()
+        syncWidgets()
     }
 
     var streak: Int { Streaks.current(history, today: now) }
