@@ -12,6 +12,8 @@ let package = Package(
     ],
     targets: [
         .target(name: "Localization"),
+        .target(name: "WidgetSnapshotCore", path: "Shared"),
+        .testTarget(name: "WidgetSnapshotTests", dependencies: ["WidgetSnapshotCore"]),
         .target(name: "SunKit", dependencies: ["Localization"]),
         .target(name: "HealthCore", dependencies: ["Localization"]),
         .target(name: "GameCore"),

@@ -20,19 +20,23 @@ struct WidgetSnapshot: Codable, Equatable {
     var stepGoal = 8000
     var language: String?
 
-    var hasForecast: Bool { !uv.isEmpty }
+    func hasForecast(at date: Date) -> Bool { uvi(at: date) != nil }
     var waterFraction: Double { min(1, Double(waterMl) / Double(max(1, waterGoal))) }
     var kcalFraction: Double { min(1, Double(max(0, kcalGoal - kcalRemaining)) / Double(max(1, kcalGoal))) }
 
-    /// uv en `date` con interpolacion lineal entre horas; 0 fuera del pronostico de hoy.
-    func uvi(at date: Date) -> Double {
+    /// nil fuera de la cobertura horaria; cero es una lectura valida, no ausencia de datos.
+    func uvi(at date: Date) -> Double? {
         let pts = uv.sorted { $0.start < $1.start }
-        guard let first = pts.first, let last = pts.last else { return 0 }
-        if date < first.start || date > last.start.addingTimeInterval(3600) { return 0 }
+        guard !pts.isEmpty, pts.allSatisfy({ $0.uvi.isFinite && $0.uvi >= 0 }),
+              let first = pts.first, let last = pts.last else { return nil }
+        if date < first.start || date >= last.start.addingTimeInterval(3600) { return nil }
+        if let exact = pts.first(where: { $0.start == date }) { return exact.uvi }
         if date >= last.start { return last.uvi }
         for i in 1..<pts.count where date <= pts[i].start {
             let (a, b) = (pts[i - 1], pts[i])
-            let t = date.timeIntervalSince(a.start) / b.start.timeIntervalSince(a.start)
+            let interval = b.start.timeIntervalSince(a.start)
+            guard interval > 0, interval <= 3600 else { return date == b.start ? b.uvi : nil }
+            let t = date.timeIntervalSince(a.start) / interval
             return a.uvi + (b.uvi - a.uvi) * t
         }
         return last.uvi
