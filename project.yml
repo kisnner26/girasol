@@ -42,15 +42,16 @@ targets:
         WKWatchOnly: true
         WKBackgroundModes:
           - mindfulness
-        NSMotionUsageDescription: Girasol uses the watch's motion sensors so the games can recognize your wrist gestures.
-        NSHealthShareUsageDescription: Girasol reads your outdoor minutes, water, calories, steps, heart rate, blood oxygen, sleep and body data to show your day and work out your goals.
-        NSHealthUpdateUsageDescription: Girasol saves the water and calories you log and your breathing minutes to Health.
-        NSLocationWhenInUseUsageDescription: Girasol uses your approximate location to look up the uv index and temperature where you are.
+        NSLocationDefaultAccuracyReduced: true
+        NSMotionUsageDescription: "girasol uses watch motion to recognize game gestures and calibrate aiming."
+        NSHealthShareUsageDescription: "girasol reads water, calories, activity, daylight, heart rate, oxygen, sleep, weight, height, age and sex from Health to display records and suggest goals."
+        NSHealthUpdateUsageDescription: "girasol saves the water, calories and breathing minutes you log to Health."
+        NSLocationWhenInUseUsageDescription: "girasol sends approximate coordinates to open-meteo for uv and weather, and uses your location to orient the shade compass."
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.kisnner26.girasol
         SWIFT_VERSION: "5.0"
-        MARKETING_VERSION: "0.1.0"
+        MARKETING_VERSION: "1.0"
         CURRENT_PROJECT_VERSION: "1"
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         GENERATE_INFOPLIST_FILE: NO
@@ -81,7 +82,7 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.kisnner26.girasol.widgets
         SWIFT_VERSION: "5.0"
-        MARKETING_VERSION: "0.1.0"
+        MARKETING_VERSION: "1.0"
         CURRENT_PROJECT_VERSION: "1"
         GENERATE_INFOPLIST_FILE: NO
         CODE_SIGN_STYLE: Automatic

@@ -26,13 +26,15 @@
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>NSHealthShareUsageDescription</key>
-	<string>Girasol reads your outdoor minutes, water, calories, steps, heart rate, blood oxygen, sleep and body data to show your day and work out your goals.</string>
+	<string>girasol reads water, calories, activity, daylight, heart rate, oxygen, sleep, weight, height, age and sex from Health to display records and suggest goals.</string>
 	<key>NSHealthUpdateUsageDescription</key>
-	<string>Girasol saves the water and calories you log and your breathing minutes to Health.</string>
+	<string>girasol saves the water, calories and breathing minutes you log to Health.</string>
+	<key>NSLocationDefaultAccuracyReduced</key>
+	<true/>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Girasol uses your approximate location to look up the uv index and temperature where you are.</string>
+	<string>girasol sends approximate coordinates to open-meteo for uv and weather, and uses your location to orient the shade compass.</string>
 	<key>NSMotionUsageDescription</key>
-	<string>Girasol uses the watch's motion sensors so the games can recognize your wrist gestures.</string>
+	<string>girasol uses watch motion to recognize game gestures and calibrate aiming.</string>
 	<key>WKApplication</key>
 	<true/>
 	<key>WKBackgroundModes</key>

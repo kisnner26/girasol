@@ -23,7 +23,7 @@ struct GirasolApp: App {
                 .task { scheduleRefresh() }
         }
         .backgroundTask(.appRefresh("girasol.refresh")) {
-            await model.refresh()
+            await model.refresh(allowAuthorization: false)
             await health.refresh()
             await MainActor.run { scheduleRefresh() }
         }

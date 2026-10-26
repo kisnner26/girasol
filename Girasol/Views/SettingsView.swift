@@ -236,6 +236,8 @@ struct SettingsDetail: View {
                 Text("girasol no es un dispositivo médico. los cálculos son aproximados y no sustituyen a un profesional.")
                     .font(.serif(10, italic: true)).foregroundStyle(Palette.mid).multilineTextAlignment(.center)
                 NavigationLink { SolarMethodView() } label: { Caption("cómo se estima") }
+                NavigationLink { PrivacyView() } label: { Caption("privacidad") }
+                Button("revisar permisos de Salud") { Task { await health.requestAccess() } }.buttonStyle(QuietButtonStyle())
             }
         }
     }

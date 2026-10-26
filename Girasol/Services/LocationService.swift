@@ -17,10 +17,14 @@ final class LocationService: NSObject, CLLocationManagerDelegate {
 
     var isDenied: Bool { [.denied, .restricted].contains(manager.authorizationStatus) }
 
-    func current() async throws -> CLLocation {
+    func current(requestAuthorization: Bool = true) async throws -> CLLocation {
         if manager.authorizationStatus == .notDetermined {
-            manager.requestWhenInUseAuthorization()
-            await withCheckedContinuation { awaitingAuth = $0 }
+            guard requestAuthorization else { throw Failure.denied }
+            guard awaitingAuth == nil else { throw Failure.unavailable }
+            await withCheckedContinuation { continuation in
+                awaitingAuth = continuation
+                manager.requestWhenInUseAuthorization()
+            }
         }
         if isDenied { throw Failure.denied }
         pending?.resume(throwing: Failure.unavailable)   // una sola peticion a la vez

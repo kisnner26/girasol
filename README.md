@@ -9,7 +9,7 @@ app gratuita de salud para apple watch, en español e inglés, hecha para vivir 
 
 - **todo en una pantalla, sin abrir el iphone.** sol, agua, calorías y pulso en tres anillos al abrir la app.
 - **te dice si puedes salir, no solo el número.** el índice uv se traduce a orientación general de protección y muestra a qué hora baja el pronóstico.
-- **privada por diseño.** tus datos de salud se quedan en tu reloj y en la app Salud. lo único que sale es tu ubicación redondeada a 2 decimales, para pedir el clima.
+- **privada por diseño.** tus datos de salud se quedan en tu reloj y en la app Salud. las consultas de clima envían coordenadas redondeadas a dos decimales a open-meteo; el proveedor recibe la ip y puede conservar registros técnicos hasta 90 días.
 - **gratis y de código abierto.** no hay servidor, no hay cuenta, no hay nada que vender.
 - **en español e inglés**, con selector de idioma dentro de la app (sigue al del reloj por defecto).
 - **diseñada para el reloj.** corona para ajustar cantidades, doble toque para confirmar, háptico en cada acción, fondo papel y letra serif que se leen al sol.
@@ -93,7 +93,7 @@ tu team id está en xcode > settings > accounts. con la cuenta gratuita el perfi
 - las complicaciones comparten datos con la app por el llavero, porque las cuentas gratuitas de apple no pueden usar app groups. el agua y las calorías se actualizan cuando abres la app o registras algo; el uv sigue la curva guardada hasta la próxima vez que abras la app.
 - no es un dispositivo médico; los cálculos de uv y calorías son aproximados.
 - watchos controla la atenuación y la suspensión: no se fuerza la pantalla encendida. las partidas se conservan en memoria al pausar; cerrar el proceso no guarda una partida en curso.
-- requiere watchOS 27 / xcode 27 (beta al momento de escribir esto).
+- destino mínimo configurado: watchos 10. el build se verifica con el xcode instalado; la compatibilidad real con watchos 10 y la aceptación del sdk por connect deben comprobarse antes del envío.
 
 ## pruebas
 
@@ -106,3 +106,7 @@ clima y uv: [Open-Meteo](https://open-meteo.com) (CC BY 4.0).
 licencia MIT.
 
 metodología y fuentes: [estimación solar](docs/solar-methodology.md).
+
+## publicación 1.0
+
+[guía de testflight](docs/app-store/testflight.md) · [privacidad es](docs/privacy/es.md) · [privacy en](docs/privacy/en.md) · [capturas pendientes](docs/app-store/screenshots.md)

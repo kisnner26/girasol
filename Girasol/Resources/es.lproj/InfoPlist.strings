@@ -1,4 +1,4 @@
-"NSHealthShareUsageDescription" = "Girasol lee tus minutos al aire libre, agua, calorías, pasos, pulso, oxígeno en sangre, sueño y datos corporales para mostrarte tu día y calcular tus metas.";
-"NSHealthUpdateUsageDescription" = "Girasol guarda en Salud el agua y las calorías que registras y tus minutos de respiración.";
-"NSLocationWhenInUseUsageDescription" = "Girasol usa tu ubicación aproximada para consultar el índice uv y la temperatura de donde estás.";
-"NSMotionUsageDescription" = "Girasol usa los sensores de movimiento del reloj para que los juegos reconozcan tus gestos de muñeca.";
+"NSHealthShareUsageDescription" = "girasol lee agua, calorías, actividad, luz diurna, pulso, oxígeno, sueño, peso, estatura, edad y sexo de Salud para mostrar registros y sugerir metas.";
+"NSHealthUpdateUsageDescription" = "girasol guarda en Salud el agua, las calorías y los minutos de respiración que registras.";
+"NSLocationWhenInUseUsageDescription" = "girasol envía coordenadas aproximadas a open-meteo para consultar uv y clima; usa tu ubicación para orientar la brújula de sombra.";
+"NSMotionUsageDescription" = "girasol usa el movimiento del reloj para reconocer tus gestos en los juegos y calibrar la puntería.";

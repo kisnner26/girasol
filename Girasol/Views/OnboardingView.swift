@@ -17,6 +17,9 @@ struct OnboardingView: View {
                     Text("girasol").font(.serif(24, italic: true)).tracking(4).foregroundStyle(Palette.ink)
                     Text("sol, agua, calma y salud en tu muñeca").font(.serif(12, italic: true)).foregroundStyle(Palette.mid)
                         .multilineTextAlignment(.center)
+                    NavigationLink { PrivacyView() } label: { Caption("privacidad") }
+                    Text("para consultar el clima se envían coordenadas aproximadas a open-meteo, que recibe tu ip y puede conservar registros hasta 90 días.")
+                        .font(.serif(11, italic: true)).foregroundStyle(Palette.mid).multilineTextAlignment(.center)
                     Button("empezar") { step = 1 }.buttonStyle(InkButtonStyle()).doubleTapPrimary()
                     Button(Lang.code == "es" ? "english" : "español") { LanguageSettings.shared.choice = Lang.code == "es" ? .en : .es }
                         .buttonStyle(QuietButtonStyle())

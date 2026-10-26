@@ -61,11 +61,11 @@ struct WidgetSnapshot: Codable, Equatable {
 
     func save() {
         guard let data = try? JSONEncoder().encode(self) else { return }
-        let update = SecItemUpdate(Self.query as CFDictionary, [kSecValueData as String: data] as CFDictionary)
+        let update = SecItemUpdate(Self.query as CFDictionary, [kSecValueData as String: data, kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly] as CFDictionary)
         if update == errSecItemNotFound {
             var add = Self.query
             add[kSecValueData as String] = data
-            add[kSecAttrAccessible as String] = kSecAttrAccessibleAfterFirstUnlock
+            add[kSecAttrAccessible as String] = kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
             SecItemAdd(add as CFDictionary, nil)
         }
     }

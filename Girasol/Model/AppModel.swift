@@ -63,7 +63,7 @@ final class AppModel {
         await refresh()
     }
 
-    func refresh() async {
+    func refresh(allowAuthorization: Bool = true) async {
         guard status != .loading else { return }
         status = .loading
         defer { lastRefresh = Date() }
@@ -77,9 +77,8 @@ final class AppModel {
             return
         }
 
-        await HealthStore.shared.requestAccess()
         do {
-            let loc = try await location.current()
+            let loc = try await location.current(requestAuthorization: allowAuthorization)
             lastCoordinate = loc.coordinate
             weather = try await weatherService.fetch(latitude: loc.coordinate.latitude, longitude: loc.coordinate.longitude)
             isCached = false
