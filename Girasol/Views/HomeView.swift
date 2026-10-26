@@ -3,7 +3,7 @@ import HealthCore
 import SunKit
 
 enum Route: Hashable {
-    case sun, water, food, body, breathe, games, settings
+    case sun, water, food, body, breathe, focus, games, settings
     case week, sleep, airBasketball, darts, pistol, tennis, bubbles, calibrate, shadeCompass
 }
 
@@ -58,6 +58,9 @@ struct HomeView: View {
                 }
                 NavigationLink(value: Route.breathe) {
                     HomeRow(icon: .breath, title: "respirar", detail: breatheDetail)
+                }
+                NavigationLink(value: Route.focus) {
+                    HomeRow(icon: .target, title: "enfoque", detail: FocusRunner.shared.session == nil ? "rondas con descansos" : "en curso")
                 }
                 NavigationLink(value: Route.games) {
                     HomeRow(icon: .target, title: "juegos", detail: "baloncesto · dardos · pistola · tenis")
