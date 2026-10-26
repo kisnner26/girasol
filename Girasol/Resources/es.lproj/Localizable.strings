@@ -3,8 +3,11 @@
 "%@ de %lld kcal" = "%@ de %lld kcal";
 "%@ desde las %@" = "%@ desde las %@";
 "%@ h anoche" = "%@ h anoche";
+"%@ h por noche" = "%@ h por noche";
 "%@ pasos" = "%@ pasos";
 "%@ y %@" = "%@ y %@";
+"%lld de %lld" = "%lld de %lld";
+"%lld de %lld días con tu meta" = "%lld de %lld días con tu meta";
 "%lld días descansados frente a %lld cortos. es una comparación, no una causa." = "%lld días descansados frente a %lld cortos. es una comparación, no una causa.";
 "%lld días seguidos" = "%lld días seguidos";
 "%lld kcal de más" = "%lld kcal de más";
@@ -41,6 +44,7 @@
 "actualizar el clima" = "actualizar el clima";
 "agua" = "agua";
 "agua durante el día" = "agua durante el día";
+"agua y pasos cumplidos" = "agua y pasos cumplidos";
 "agua y pasos registrados en Salud; el uv no determina la racha." = "agua y pasos registrados en Salud; el uv no determina la racha.";
 "agua · hoy" = "agua · hoy";
 "agua, comida, pasos" = "agua, comida, pasos";
@@ -62,6 +66,7 @@
 "así" = "así";
 "añadir" = "añadir";
 "año de nacimiento" = "año de nacimiento";
+"aún hay pocos días registrados. vuelve cuando lleves unos cuantos más." = "aún hay pocos días registrados. vuelve cuando lleves unos cuantos más.";
 "baja" = "baja";
 "bajar de peso" = "bajar de peso";
 "bajo" = "bajo";
@@ -71,6 +76,7 @@
 "beber agua" = "beber agua";
 "bebes %@ menos" = "bebes %@ menos";
 "bebes %@ más" = "bebes %@ más";
+"bebiste más que la semana anterior. sigue así." = "bebiste más que la semana anterior. sigue así.";
 "bien" = "bien";
 "bien +1" = "bien +1";
 "bien hecho" = "bien hecho";
@@ -87,6 +93,7 @@
 "calor extremo, hidrátate" = "calor extremo, hidrátate";
 "caminas %@ pasos menos" = "caminas %@ pasos menos";
 "caminas %@ pasos más" = "caminas %@ pasos más";
+"caminaste más que la semana anterior." = "caminaste más que la semana anterior.";
 "canasta" = "canasta";
 "canasta +%lld" = "canasta +%lld";
 "cancelar" = "cancelar";
@@ -125,6 +132,8 @@
 "duración" = "duración";
 "día" = "día";
 "días" = "días";
+"días completos" = "días completos";
+"el agua fue lo más flojo esta semana. un vaso al levantarte ayuda a empezar." = "el agua fue lo más flojo esta semana. un vaso al levantarte ayuda a empezar.";
 "el reloj no mide uv en la piel. sombra, ropa, orientación, nubes, medicamentos y datos incompletos pueden cambiar tu exposición real. el spf no aumenta un tiempo seguro ni reduce retroactivamente esta estimación." = "el reloj no mide uv en la piel. sombra, ropa, orientación, nubes, medicamentos y datos incompletos pueden cambiar tu exposición real. el spf no aumenta un tiempo seguro ni reduce retroactivamente esta estimación.";
 "el riesgo varía con la exposición y tu situación personal" = "el riesgo varía con la exposición y tu situación personal";
 "el segundo giro tiene que ser hacia arriba, no otra vez hacia la izquierda." = "el segundo giro tiene que ser hacia arriba, no otra vez hacia la izquierda.";
@@ -162,6 +171,7 @@
 "hora de tomar agua" = "hora de tomar agua";
 "háptico" = "háptico";
 "idioma" = "idioma";
+"igual que la semana pasada" = "igual que la semana pasada";
 "inclina la muñeca hacia la izquierda y quédate quieto." = "inclina la muñeca hacia la izquierda y quédate quieto.";
 "inclina la muñeca hacia la izquierda, hasta donde apuntarías." = "inclina la muñeca hacia la izquierda, hasta donde apuntarías.";
 "inclina más la muñeca en cada paso." = "inclina más la muñeca en cada paso.";
@@ -184,6 +194,7 @@
 "llega hasta la marca de la barra" = "llega hasta la marca de la barra";
 "llevas %lld rondas. desconecta un rato." = "llevas %lld rondas. desconecta un rato.";
 "llevas tiempo al sol sin protector. ponte uno o busca sombra." = "llevas tiempo al sol sin protector. ponte uno o busca sombra.";
+"los pasos quedaron por debajo de tu meta la mayoría de los días. un paseo corto cuenta." = "los pasos quedaron por debajo de tu meta la mayoría de los días. un paseo corto cuenta.";
 "luz diurna registrada recientemente" = "luz diurna registrada recientemente";
 "láser" = "láser";
 "líquidos" = "líquidos";
@@ -198,6 +209,7 @@
 "mejor evitar" = "mejor evitar";
 "mejor racha: %lld" = "mejor racha: %lld";
 "menos de %lld h" = "menos de %lld h";
+"menos que la semana pasada" = "menos que la semana pasada";
 "meta %lld h" = "meta %lld h";
 "meta de agua" = "meta de agua";
 "meta de comida" = "meta de comida";
@@ -220,6 +232,7 @@
 "muy clara, siempre se quema" = "muy clara, siempre se quema";
 "muy pronto" = "muy pronto";
 "más alto = el gesto se detecta con menos fuerza." = "más alto = el gesto se detecta con menos fuerza.";
+"más que la semana pasada" = "más que la semana pasada";
 "necesito más noches con datos para comparar el sueño con tu agua y tus pasos." = "necesito más noches con datos para comparar el sueño con tu agua y tus pasos.";
 "necesito tu ubicación aproximada para saber el uv de donde estás" = "necesito tu ubicación aproximada para saber el uv de donde estás";
 "no pude consultar el clima" = "no pude consultar el clima";
@@ -264,6 +277,7 @@
 "privacy.weather" = "para consultar el clima enviamos a open-meteo coordenadas redondeadas a dos decimales mediante https. open-meteo recibe también la ip de la conexión y puede conservar registros con coordenadas hasta 90 días para diagnóstico y prevención de abuso. no enviamos tu nombre ni datos de Salud. la ubicación también orienta la brújula de sombra en el reloj.";
 "privacy.widgets" = "las complicaciones leen un resumen de clima, agua, calorías y pasos mediante un grupo de llavero compartido con la app. ese resumen se reemplaza al actualizarse y puede permanecer tras desinstalar. está protegido por el llavero y no se migra a otro dispositivo. game center está desactivado en la versión 1.0.";
 "profundo" = "profundo";
+"promedio de los últimos 7 días terminados; hoy no cuenta. son datos de Salud, no un consejo médico." = "promedio de los últimos 7 días terminados; hoy no cuenta. son datos de Salud, no un consejo médico.";
 "pronto" = "pronto";
 "pronóstico uv: usa protección, ropa y sombra desde uv 3. no es una medición de tu piel." = "pronóstico uv: usa protección, ropa y sombra desde uv 3. no es una medición de tu piel.";
 "pronóstico: uv bajo desde las %@." = "pronóstico: uv bajo desde las %@.";
@@ -284,6 +298,8 @@
 "repite en reposo; si sigue baja, consulta a un médico" = "repite en reposo; si sigue baja, consulta a un médico";
 "repite la medición en reposo y quieto" = "repite la medición en reposo y quieto";
 "respirar" = "respirar";
+"resumen de la semana ›" = "resumen de la semana ›";
+"resumen semanal" = "resumen semanal";
 "reventadas · %lld" = "reventadas · %lld";
 "revisar permisos de Salud" = "revisar permisos de Salud";
 "ritmo" = "ritmo";
@@ -296,6 +312,8 @@
 "sed estimadas" = "sed estimadas";
 "sedentario" = "sedentario";
 "seguir" = "seguir";
+"semana completa: cumpliste agua y pasos todos los días registrados." = "semana completa: cumpliste agua y pasos todos los días registrados.";
+"semana estable, muy parecida a la anterior." = "semana estable, muy parecida a la anterior.";
 "sensación %@" = "sensación %@";
 "sensibilidad" = "sensibilidad";
 "sensibilidad de los juegos" = "sensibilidad de los juegos";

@@ -3,8 +3,11 @@
 "%@ de %lld kcal" = "%@ of %lld kcal";
 "%@ desde las %@" = "%@ from %@";
 "%@ h anoche" = "%@ h last night";
+"%@ h por noche" = "%@ h a night";
 "%@ pasos" = "%@ steps";
 "%@ y %@" = "%@ and %@";
+"%lld de %lld" = "%lld of %lld";
+"%lld de %lld días con tu meta" = "%lld of %lld days on goal";
 "%lld días descansados frente a %lld cortos. es una comparación, no una causa." = "%lld rested days versus %lld short ones. it's a comparison, not a cause.";
 "%lld días seguidos" = "%lld days in a row";
 "%lld kcal de más" = "%lld kcal over";
@@ -41,6 +44,7 @@
 "actualizar el clima" = "refresh the weather";
 "agua" = "water";
 "agua durante el día" = "water through the day";
+"agua y pasos cumplidos" = "water and steps goals met";
 "agua y pasos registrados en Salud; el uv no determina la racha." = "water and steps recorded in Health; uv does not determine your streak.";
 "agua · hoy" = "water · today";
 "agua, comida, pasos" = "water, food, steps";
@@ -62,6 +66,7 @@
 "así" = "like this";
 "añadir" = "add";
 "año de nacimiento" = "birth year";
+"aún hay pocos días registrados. vuelve cuando lleves unos cuantos más." = "there are still few logged days. come back after a few more.";
 "baja" = "low";
 "bajar de peso" = "lose weight";
 "bajo" = "low";
@@ -71,6 +76,7 @@
 "beber agua" = "drink water";
 "bebes %@ menos" = "you drink %@ less";
 "bebes %@ más" = "you drink %@ more";
+"bebiste más que la semana anterior. sigue así." = "you drank more than the previous week. keep it up.";
 "bien" = "good";
 "bien +1" = "good +1";
 "bien hecho" = "well done";
@@ -87,6 +93,7 @@
 "calor extremo, hidrátate" = "extreme heat, hydrate";
 "caminas %@ pasos menos" = "you walk %@ fewer steps";
 "caminas %@ pasos más" = "you walk %@ more steps";
+"caminaste más que la semana anterior." = "you walked more than the previous week.";
 "canasta" = "basket";
 "canasta +%lld" = "basket +%lld";
 "cancelar" = "cancel";
@@ -125,6 +132,8 @@
 "duración" = "duration";
 "día" = "day";
 "días" = "days";
+"días completos" = "full days";
+"el agua fue lo más flojo esta semana. un vaso al levantarte ayuda a empezar." = "water was the weakest habit this week. a glass when you wake up helps you start.";
 "el reloj no mide uv en la piel. sombra, ropa, orientación, nubes, medicamentos y datos incompletos pueden cambiar tu exposición real. el spf no aumenta un tiempo seguro ni reduce retroactivamente esta estimación." = "the watch does not measure uv on your skin. shade, clothing, orientation, clouds, medication and incomplete data can change your actual exposure. spf does not extend safe time or retroactively reduce this estimate.";
 "el riesgo varía con la exposición y tu situación personal" = "risk varies with exposure and your individual circumstances";
 "el segundo giro tiene que ser hacia arriba, no otra vez hacia la izquierda." = "the second tilt has to go up, not left again.";
@@ -162,6 +171,7 @@
 "hora de tomar agua" = "time to drink water";
 "háptico" = "haptics";
 "idioma" = "language";
+"igual que la semana pasada" = "same as last week";
 "inclina la muñeca hacia la izquierda y quédate quieto." = "tilt your wrist to the left and hold still.";
 "inclina la muñeca hacia la izquierda, hasta donde apuntarías." = "tilt your wrist to the left, as far as you'd aim.";
 "inclina más la muñeca en cada paso." = "tilt your wrist more at each step.";
@@ -184,6 +194,7 @@
 "llega hasta la marca de la barra" = "reach the mark on the bar";
 "llevas %lld rondas. desconecta un rato." = "%lld rounds done. disconnect for a while.";
 "llevas tiempo al sol sin protector. ponte uno o busca sombra." = "you've been in the sun a while without sunscreen. put some on or find shade.";
+"los pasos quedaron por debajo de tu meta la mayoría de los días. un paseo corto cuenta." = "steps stayed under your goal most days. a short walk counts.";
 "luz diurna registrada recientemente" = "daylight recorded recently";
 "láser" = "laser";
 "líquidos" = "liquids";
@@ -198,6 +209,7 @@
 "mejor evitar" = "better avoid";
 "mejor racha: %lld" = "best streak: %lld";
 "menos de %lld h" = "under %lld h";
+"menos que la semana pasada" = "less than last week";
 "meta %lld h" = "goal %lld h";
 "meta de agua" = "water goal";
 "meta de comida" = "food goal";
@@ -220,6 +232,7 @@
 "muy clara, siempre se quema" = "very fair, always burns";
 "muy pronto" = "too early";
 "más alto = el gesto se detecta con menos fuerza." = "higher = the gesture is detected with less force.";
+"más que la semana pasada" = "more than last week";
 "necesito más noches con datos para comparar el sueño con tu agua y tus pasos." = "i need a few more nights of data to compare your sleep with your water and steps.";
 "necesito tu ubicación aproximada para saber el uv de donde estás" = "i need your approximate location to know the uv where you are";
 "no pude consultar el clima" = "couldn't get the weather";
@@ -264,6 +277,7 @@
 "privacy.weather" = "weather requests send coordinates rounded to two decimal places to open-meteo over https. open-meteo also receives the connection ip and may retain logs containing coordinates for up to 90 days for troubleshooting and abuse prevention. we do not send your name or Health data. location also orients the shade compass locally.";
 "privacy.widgets" = "complications read a weather, water, calories and steps summary through a keychain group shared with the app. updates replace this summary; it may remain after uninstalling. it is keychain protected and is not migrated to another device. game center is disabled in version 1.0.";
 "profundo" = "deep";
+"promedio de los últimos 7 días terminados; hoy no cuenta. son datos de Salud, no un consejo médico." = "average of the last 7 finished days; today doesn't count. this is Health data, not medical advice.";
 "pronto" = "early";
 "pronóstico uv: usa protección, ropa y sombra desde uv 3. no es una medición de tu piel." = "uv forecast: use sunscreen, clothing and shade from uv 3. this is not a skin measurement.";
 "pronóstico: uv bajo desde las %@." = "forecast: low uv from %@.";
@@ -284,6 +298,8 @@
 "repite en reposo; si sigue baja, consulta a un médico" = "measure again at rest; if it stays low, see a doctor";
 "repite la medición en reposo y quieto" = "measure again, at rest and sitting still";
 "respirar" = "breathe";
+"resumen de la semana ›" = "weekly summary ›";
+"resumen semanal" = "weekly summary";
 "reventadas · %lld" = "popped · %lld";
 "revisar permisos de Salud" = "review Health permissions";
 "ritmo" = "rhythm";
@@ -296,6 +312,8 @@
 "sed estimadas" = "estimated sed";
 "sedentario" = "sedentary";
 "seguir" = "resume";
+"semana completa: cumpliste agua y pasos todos los días registrados." = "full week: you met water and steps on every logged day.";
+"semana estable, muy parecida a la anterior." = "a steady week, very close to the previous one.";
 "sensación %@" = "feels like %@";
 "sensibilidad" = "sensitivity";
 "sensibilidad de los juegos" = "game sensitivity";
