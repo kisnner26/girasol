@@ -3,8 +3,10 @@ import GameCore
 
 /// campo de tiro: la mira sigue tu muñeca y disparas con el retroceso del gesto. recarga girando la corona.
 struct PistolView: View {
+    @Environment(\.dismiss) private var dismiss
     @State private var game = Shooter(seed: UInt64(Date().timeIntervalSince1970))
     @State private var running = false
+    @State private var paused = false
     @State private var finished = false
     @State private var feed = MotionFeed(threshold: MotionSettings.shared.threshold * 1.15, cooldown: 0.22, minDuration: 0.02)
     @State private var clock = FrameClock()
@@ -30,7 +32,7 @@ struct PistolView: View {
                 TimelineView(.animation(minimumInterval: 1 / 60)) { tl in
                     Canvas { ctx, size in draw(&ctx, size, tl.date) }
                 }
-                GameHUD(left: "\(game.score) pts", right: "\(Int(game.timeLeft.rounded(.up))) s")
+                GameHUD(left: "\(game.score) pts", right: "\(Int(game.timeLeft.rounded(.up))) s", onPause: running ? { pause() } : nil)
                 ammo
                 if settings.showMeter && !settings.usesTouch && running {
                     MotionMeter(feed: feed, threshold: feed.detector.threshold)
@@ -38,11 +40,20 @@ struct PistolView: View {
                 }
                 overlay
                 AwayBanner(monitor: away)
+                if running && !paused && !settings.usesTouch {
+                    // doble toque: dispara donde ya apunta la muñeca, sin el tirón que puede desviar la mira.
+                    Button("disparar") { fire(at: crosshair) }
+                        .opacity(0).frame(width: 1, height: 1)
+                        .doubleTapPrimary()
+                }
+                if paused {
+                    PauseOverlay(onResume: resume, onExit: exit)
+                }
             }
             .gameLoop { advance($0, geo.size) }
             .contentShape(Rectangle())
             .gesture(DragGesture(minimumDistance: 0).onEnded { v in
-                guard settings.usesTouch, running else { return }
+                guard settings.usesTouch, running, !paused else { return }
                 touchAim = Vec(x: v.location.x / geo.size.width, y: 1 - v.location.y / geo.size.height)
                 fire(at: touchAim)
             })
@@ -50,7 +61,7 @@ struct PistolView: View {
         .focusable()
         .digitalCrownRotation($crown, from: 0, through: 1, by: nil, sensitivity: .high, isContinuous: true, isHapticFeedbackEnabled: true)
         .onChange(of: crown) { old, new in
-            guard running else { return }
+            guard running, !paused else { return }
             var d = new - old
             if abs(d) > 0.5 { d += d > 0 ? -1 : 1 }
             let before = game.ammo
@@ -59,7 +70,7 @@ struct PistolView: View {
         }
         .paperBackground()
         .keepAwake()
-        .navigationBarBackButtonHidden(running)
+        .navigationBarBackButtonHidden(running && !paused)
         .onDisappear { feed.stop() }
     }
 
@@ -106,6 +117,26 @@ struct PistolView: View {
         }
     }
 
+    // MARK: pausa
+
+    private func pause() {
+        paused = true
+        Haptics.play(.click)
+    }
+
+    private func resume() {
+        paused = false
+        clock.reset()
+        Haptics.play(.click)
+    }
+
+    private func exit() {
+        running = false
+        paused = false
+        feed.stop()
+        dismiss()
+    }
+
     // MARK: flujo
 
     private func begin() {
@@ -118,13 +149,14 @@ struct PistolView: View {
         Haptics.play(.start)
         if !settings.usesTouch {
             feed.start(threshold: settings.threshold * 1.15) { sw in
-                guard running else { return }
+                guard running, !paused else { return }
                 fire(at: feed.aimPoint(at: sw.time - 0.12))
             }
         }
     }
 
     private func fire(at: Vec) {
+        guard !paused else { return }
         flash = Date()
         switch game.shoot(at: at) {
         case .hit(let kind):
@@ -149,7 +181,7 @@ struct PistolView: View {
 
     private func advance(_ now: Date, _ size: CGSize) {
         away.tick()
-        guard running else { clock.reset(); return }
+        guard running, !paused else { clock.reset(); return }
         let dt = clock.dt(now)
         game.step(dt: dt)
         Effects.step(&particles, dt: dt)

@@ -2,8 +2,10 @@ import SwiftUI
 import GameCore
 
 struct AirBasketballView: View {
+    @Environment(\.dismiss) private var dismiss
     @State private var game = AirBasketball(seed: UInt64(Date().timeIntervalSince1970))
     @State private var running = false
+    @State private var paused = false
     @State private var finished = false
     @State private var practicing = false
     @State private var practiceCount = 0
@@ -23,7 +25,7 @@ struct AirBasketballView: View {
                 TimelineView(.animation(minimumInterval: 1 / 60)) { tl in
                     Canvas { ctx, size in draw(&ctx, size, tl.date) }
                 }
-                GameHUD(left: "\(game.score) pts", right: "\(Int(game.timeLeft.rounded(.up))) s")
+                GameHUD(left: "\(game.score) pts", right: "\(Int(game.timeLeft.rounded(.up))) s", onPause: running ? { pause() } : nil)
                 if running && game.streak >= 2 {
                     Caption("racha \(game.streak)", color: Palette.rose).frame(maxHeight: .infinity, alignment: .top).padding(.top, 40)
                 }
@@ -33,24 +35,35 @@ struct AirBasketballView: View {
                 }
                 overlay
                 AwayBanner(monitor: away)
+                if paused {
+                    PauseOverlay(onResume: resume, onExit: exit)
+                }
             }
             .gameLoop { advance($0, geo.size) }
             .contentShape(Rectangle())
             .gesture(DragGesture(minimumDistance: 12).onEnded { v in
-                guard settings.usesTouch else { return }
+                guard settings.usesTouch, !paused else { return }
                 handle(touchSwing(translation: v.translation, width: geo.size.width))
             })
         }
         .paperBackground()
         .keepAwake()
-        .navigationBarBackButtonHidden(running)
+        .navigationBarBackButtonHidden(running && !paused)
         .onDisappear { feed.stop() }
     }
 
     // MARK: pantalla de inicio / fin
 
     @ViewBuilder private var overlay: some View {
-        if practicing {
+        if !settings.usesTouch && settings.mapping == nil && !running && !practicing {
+            VStack(spacing: 8) {
+                Text("baloncesto de muñeca").font(.serif(20, italic: true)).foregroundStyle(Palette.ink)
+                Text("primero calibra tu puntería: son 10 segundos.").font(.serif(11, italic: true)).foregroundStyle(Palette.mid)
+                    .multilineTextAlignment(.center)
+                NavigationLink(value: Route.calibrate) { Caption("calibrar", color: Palette.ink) }.buttonStyle(InkButtonStyle())
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity).background(Palette.paper.opacity(0.95))
+        } else if practicing {
             GameOverlay(title: "calentamiento", subtitle: "lanza con la muñeca como un tiro normal: \(practiceCount) de \(PowerCalibration.needed)",
                         button: "") { }
                 .allowsHitTesting(false)
@@ -61,6 +74,26 @@ struct AirBasketballView: View {
                                                                  : "lanza con un gesto de muñeca. la fuerza decide la distancia; inclina para apuntar."),
                         button: finished ? "otra vez" : "empezar") { begin() }
         }
+    }
+
+    // MARK: pausa
+
+    private func pause() {
+        paused = true
+        Haptics.play(.click)
+    }
+
+    private func resume() {
+        paused = false
+        clock.reset()
+        Haptics.play(.click)
+    }
+
+    private func exit() {
+        running = false
+        paused = false
+        feed.stop()
+        dismiss()
     }
 
     // MARK: flujo
@@ -100,7 +133,7 @@ struct AirBasketballView: View {
             }
             return
         }
-        guard running else { return }
+        guard running, !paused else { return }
         let power = settings.usesTouch ? sw.power / 2.0 : settings.basketPower.normalized(sw.power)
         let aim = settings.usesTouch ? max(-1, min(1, sw.direction.x * 2.2)) : feed.aim(at: sw.time - 0.18).x
         game.shoot(power: power, aim: aim)
@@ -109,7 +142,7 @@ struct AirBasketballView: View {
     private func advance(_ now: Date, _ size: CGSize) {
         away.tick()
         lastSize = size
-        guard running else { clock.reset(); return }
+        guard running, !paused else { clock.reset(); return }
         let dt = clock.dt(now)
         game.step(dt: dt)
         Effects.step(&particles, dt: dt)

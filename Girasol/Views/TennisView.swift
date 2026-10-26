@@ -3,8 +3,10 @@ import GameCore
 
 /// tenis de reflejos: la pelota viene hacia ti y le pegas con un golpe de muñeca justo cuando llega al anillo.
 struct TennisView: View {
+    @Environment(\.dismiss) private var dismiss
     @State private var game = Tennis(seed: UInt64(Date().timeIntervalSince1970))
     @State private var running = false
+    @State private var paused = false
     @State private var finished = false
     @State private var feed = MotionFeed(threshold: MotionSettings.shared.threshold, cooldown: 0.25)
     @State private var clock = FrameClock()
@@ -22,7 +24,7 @@ struct TennisView: View {
                 TimelineView(.animation(minimumInterval: 1 / 60)) { tl in
                     Canvas { ctx, size in draw(&ctx, size, tl.date) }
                 }
-                GameHUD(left: "\(game.score) pts", right: LocalizedStringKey(lives))
+                GameHUD(left: "\(game.score) pts", right: LocalizedStringKey(lives), onPause: running ? { pause() } : nil)
                 if running && game.rally >= 2 {
                     Caption("\(game.rally) seguidas", color: Palette.rose).frame(maxHeight: .infinity, alignment: .top).padding(.top, 40)
                 }
@@ -38,18 +40,41 @@ struct TennisView: View {
                                                                          : "golpea con la muñeca justo cuando la pelota llega al anillo. tres fallos y termina."),
                                 button: finished ? "otra vez" : "empezar") { begin() }
                 }
+                if paused {
+                    PauseOverlay(onResume: resume, onExit: exit)
+                }
             }
             .gameLoop { advance($0) }
             .contentShape(Rectangle())
-            .onTapGesture { if settings.usesTouch && running { hit() } }
+            .onTapGesture { if settings.usesTouch && running && !paused { hit() } }
         }
         .paperBackground()
         .keepAwake()
-        .navigationBarBackButtonHidden(running)
+        .navigationBarBackButtonHidden(running && !paused)
         .onDisappear { feed.stop() }
     }
 
     private var lives: String { String(repeating: "♥", count: max(0, game.livesLeft)) }
+
+    // MARK: pausa
+
+    private func pause() {
+        paused = true
+        Haptics.play(.click)
+    }
+
+    private func resume() {
+        paused = false
+        clock.reset()
+        Haptics.play(.click)
+    }
+
+    private func exit() {
+        running = false
+        paused = false
+        feed.stop()
+        dismiss()
+    }
 
     private func begin() {
         game = Tennis(seed: UInt64(Date().timeIntervalSince1970 * 1000))
@@ -64,7 +89,7 @@ struct TennisView: View {
     }
 
     private func hit() {
-        guard running else { return }
+        guard running, !paused else { return }
         swingAt = Date()
         Sfx.shared.play(.whoosh)
         guard let r = game.swing() else { return }
@@ -93,7 +118,7 @@ struct TennisView: View {
 
     private func advance(_ now: Date) {
         away.tick()
-        guard running else { clock.reset(); return }
+        guard running, !paused else { clock.reset(); return }
         let dt = clock.dt(now)
         game.step(dt: dt)
         Effects.step(&particles, dt: dt)

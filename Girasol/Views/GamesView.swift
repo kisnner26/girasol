@@ -56,19 +56,49 @@ struct GameOverlay: View {
     }
 }
 
-/// puntaje y tiempo arriba, debajo del reloj del sistema.
+/// puntaje y tiempo arriba, debajo del reloj del sistema; entre medio, el boton de pausa si se le pasa `onPause`.
 struct GameHUD: View {
     let left: LocalizedStringKey
     let right: LocalizedStringKey
+    var onPause: (() -> Void)? = nil
+
     var body: some View {
         HStack {
-            Caption(left, color: Palette.ink)
+            Caption(left, color: Palette.ink).allowsHitTesting(false)
             Spacer()
-            Caption(right, color: Palette.ink)
+            if let onPause {
+                Button(action: onPause) {
+                    HStack(spacing: 3) {
+                        Rectangle().frame(width: 2.2, height: 10)
+                        Rectangle().frame(width: 2.2, height: 10)
+                    }
+                    .foregroundStyle(Palette.mid)
+                    .padding(8)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                Spacer()
+            }
+            Caption(right, color: Palette.ink).allowsHitTesting(false)
         }
         .padding(.horizontal, 12).padding(.top, 22)
         .frame(maxHeight: .infinity, alignment: .top)
-        .allowsHitTesting(false)
+    }
+}
+
+/// pantalla de pausa: cubre el juego entero, para el mismo boton que oculta el "volver" del sistema mientras corres.
+struct PauseOverlay: View {
+    let onResume: () -> Void
+    let onExit: () -> Void
+
+    var body: some View {
+        VStack(spacing: 8) {
+            Text("pausa").font(.serif(20, italic: true)).foregroundStyle(Palette.ink)
+            Button("seguir", action: onResume).buttonStyle(InkButtonStyle()).doubleTapPrimary()
+            Button("salir", action: onExit).buttonStyle(QuietButtonStyle())
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Palette.paper.opacity(0.96))
     }
 }
 

@@ -2,8 +2,10 @@ import SwiftUI
 import GameCore
 
 struct DartsView: View {
+    @Environment(\.dismiss) private var dismiss
     @State private var game = Darts(seed: UInt64(Date().timeIntervalSince1970))
     @State private var running = false
+    @State private var paused = false
     @State private var finished = false
     @State private var practicing = false
     @State private var practiceCount = 0
@@ -26,19 +28,29 @@ struct DartsView: View {
                 TimelineView(.animation(minimumInterval: 1 / 60)) { tl in
                     Canvas { ctx, size in draw(&ctx, size, tl.date) }
                 }
-                GameHUD(left: "\(game.total) pts", right: running ? "ronda \(game.turn)/\(Darts.turns)" : "")
+                GameHUD(left: "\(game.total) pts", right: running ? "ronda \(game.turn)/\(Darts.turns)" : "",
+                        onPause: (running && flying == nil) ? { pause() } : nil)
                 if settings.showMeter && !settings.usesTouch && (running || practicing) {
                     MotionMeter(feed: feed, threshold: settings.threshold)
                         .padding(.horizontal, 30).frame(maxHeight: .infinity, alignment: .bottom).padding(.bottom, 3)
                 }
                 overlay
                 AwayBanner(monitor: away)
+                if running && !paused && !settings.usesTouch && flying == nil {
+                    // doble toque: lanza con el pulso actual, sin el tirón de muñeca que a veces se pasa de rosca.
+                    Button("lanzar") { throwDart(power: 1, aim: feed.aim, steadiness: feed.steadiness) }
+                        .opacity(0).frame(width: 1, height: 1)
+                        .doubleTapPrimary()
+                }
+                if paused {
+                    PauseOverlay(onResume: resume, onExit: exit)
+                }
             }
             .onAppear { boardSize = geo.size }
             .gameLoop { advance($0) }
             .contentShape(Rectangle())
             .gesture(DragGesture(minimumDistance: 0).onEnded { v in
-                guard settings.usesTouch, running else { return }
+                guard settings.usesTouch, running, !paused else { return }
                 let c = boardCenter(geo.size), r = boardRadius(geo.size)
                 let aim = Vec(x: max(-1, min(1, (v.location.x - c.x) / r / 1.05)), y: max(-1, min(1, -(v.location.y - c.y) / r / 1.05)))
                 throwDart(power: 1, aim: aim, steadiness: 1)
@@ -46,7 +58,7 @@ struct DartsView: View {
         }
         .paperBackground()
         .keepAwake()
-        .navigationBarBackButtonHidden(running)
+        .navigationBarBackButtonHidden(running && !paused)
         .onDisappear { feed.stop() }
     }
 
@@ -71,6 +83,25 @@ struct DartsView: View {
                                            : (settings.usesTouch ? "toca el tablero para tirar." : "apunta inclinando la mano y lanza con la muñeca.\nsi te tiembla el pulso, el dardo se dispersa."),
                         button: finished ? "otra vez" : "empezar") { begin() }
         }
+    }
+
+    // MARK: pausa
+
+    private func pause() {
+        paused = true
+        Haptics.play(.click)
+    }
+
+    private func resume() {
+        paused = false
+        Haptics.play(.click)
+    }
+
+    private func exit() {
+        running = false
+        paused = false
+        feed.stop()
+        dismiss()
     }
 
     // MARK: flujo
@@ -100,13 +131,13 @@ struct DartsView: View {
                 if settings.dartsPower.isReady { practicing = false; Haptics.play(.success); begin() }
                 return
             }
-            guard running else { return }
+            guard running, !paused else { return }
             throwDart(power: settings.dartsPower.normalized(sw.power), aim: feed.aim(at: sw.time - 0.2), steadiness: sw.steadiness)
         }
     }
 
     private func throwDart(power: Double, aim: Vec, steadiness: Double) {
-        guard flying == nil, let l = game.throwDart(power: power, aim: aim, steadiness: steadiness) else { return }
+        guard !paused, flying == nil, let l = game.throwDart(power: power, aim: aim, steadiness: steadiness) else { return }
         let c = boardCenter(boardSize), r = boardRadius(boardSize)
         let to = CGPoint(x: c.x + l.x * r, y: c.y - l.y * r)
         flying = (CGPoint(x: boardSize.width / 2, y: boardSize.height * 1.02), to, l.score, Date())
@@ -114,7 +145,7 @@ struct DartsView: View {
 
     private func advance(_ now: Date) {
         away.tick()
-        guard running || flying != nil else { return }
+        guard !paused, running || flying != nil else { return }
         if let f = flying, now.timeIntervalSince(f.born) >= flightTime {
             landed(f)
             flying = nil
