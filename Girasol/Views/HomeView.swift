@@ -4,7 +4,7 @@ import SunKit
 
 enum Route: Hashable {
     case sun, water, food, body, breathe, games, settings
-    case week, sleep, airBasketball, darts, pistol, tennis, bubbles, calibrate
+    case week, sleep, airBasketball, darts, pistol, tennis, bubbles, calibrate, shadeCompass
 }
 
 struct HomeView: View {

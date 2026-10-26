@@ -68,6 +68,7 @@ struct MainStack: View {
                     case .tennis: TennisView()
                     case .bubbles: BubblesView()
                     case .calibrate: AimCalibrationView()
+                    case .shadeCompass: ShadeCompassView()
                     }
                 }
                 .navigationDestination(for: SettingsSection.self) { SettingsDetail(section: $0) }

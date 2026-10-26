@@ -40,6 +40,10 @@ struct ExposureView: View {
                             .foregroundStyle(Palette.mid).multilineTextAlignment(.center)
                     }
                     if model.sunNow { Caption("✦ al sol ahora", color: Palette.ink) }
+                    if model.shadeHeading != nil {
+                        NavigationLink(value: Route.shadeCompass) { Caption("brújula de sombra", color: Palette.ink) }
+                            .buttonStyle(.plain)
+                    }
                     SunscreenTimerView()
                 }
                 .padding(.horizontal, 6)

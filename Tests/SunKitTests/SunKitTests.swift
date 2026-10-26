@@ -34,6 +34,21 @@ final class UVTests: XCTestCase {
     }
 }
 
+final class SolarPositionTests: XCTestCase {
+    func testAzimuthIsAlwaysACompassBearing() {
+        let position = SolarPosition.compute(latitude: 12.1364, longitude: -86.2514, date: date("18:00"))
+        XCTAssertGreaterThanOrEqual(position.azimuth, 0)
+        XCTAssertLessThan(position.azimuth, 360)
+        XCTAssertGreaterThan(position.elevation, 0, "al mediodía local de managua el sol debe estar sobre el horizonte")
+    }
+
+    func testShadeHeadingFacesAwayFromTheSun() {
+        let position = SolarPosition.compute(latitude: 12.1364, longitude: -86.2514, date: date("18:00"))
+        let shade = SolarPosition.shadeHeading(latitude: 12.1364, longitude: -86.2514, date: date("18:00"))
+        XCTAssertEqual(shade, (position.azimuth + 180).truncatingRemainder(dividingBy: 360), accuracy: 0.000_001)
+    }
+}
+
 final class ExposureTests: XCTestCase {
     func testDoseKnownValue() {
         // uv 8 durante 25 min = 300 j/m2 = la med del tipo iii

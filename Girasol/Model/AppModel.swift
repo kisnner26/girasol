@@ -1,3 +1,4 @@
+import CoreLocation
 import Foundation
 import Observation
 import SunKit
@@ -21,6 +22,8 @@ final class AppModel {
     private let demo: Bool
     private var reading = DaylightService.Reading(minutesByHour: [:], lastSampleEnd: nil)
     private(set) var lastRefresh: Date?
+    /// del ultimo `refresh()`: sirve para la brujula de sombra, no para el pronostico (ese ya viene resuelto en `weather`).
+    private(set) var lastCoordinate: CLLocationCoordinate2D?
     /// temporizador de 2 h para reaplicar protector; se guarda para que sobreviva al cierre de la app.
     private(set) var sunscreenTimer: SunscreenTimer? = UserDefaults.standard.data(forKey: "girasol.sunscreenTimer")
         .flatMap { try? JSONDecoder().decode(SunscreenTimer.self, from: $0) }
@@ -52,6 +55,12 @@ final class AppModel {
         weather.flatMap { DayOutlook.make(hours: $0.hours, timeZone: $0.timeZone) }
     }
 
+    /// hacia donde girar la espalda para hacerte sombra; nil de noche o sin ubicacion todavia.
+    var shadeHeading: Double? {
+        guard let c = lastCoordinate, let w = weather, w.current.isDay else { return nil }
+        return SolarPosition.shadeHeading(latitude: c.latitude, longitude: c.longitude, date: now)
+    }
+
     // MARK: actualizacion
 
     func refreshIfStale() async {
@@ -76,6 +85,7 @@ final class AppModel {
         await HealthStore.shared.requestAccess()
         do {
             let loc = try await location.current()
+            lastCoordinate = loc.coordinate
             weather = try await weatherService.fetch(latitude: loc.coordinate.latitude, longitude: loc.coordinate.longitude)
             isCached = false
         } catch LocationService.Failure.denied {
