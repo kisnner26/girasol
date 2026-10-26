@@ -31,6 +31,7 @@
 "No pude guardar el agua. Revisa el permiso de Salud." = "No pude guardar el agua. Revisa el permiso de Salud.";
 "Registrar un vaso de agua" = "Registrar un vaso de agua";
 "Suma un vaso de agua a tu registro de Salud." = "Suma un vaso de agua a tu registro de Salud.";
+"a enfocarse" = "a enfocarse";
 "a las %@" = "a las %@";
 "acerca de" = "acerca de";
 "actividad" = "actividad";
@@ -52,6 +53,7 @@
 "alta en reposo" = "alta en reposo";
 "alto" = "alto";
 "amigo" = "amigo";
+"anotado" = "anotado";
 "apariencia" = "apariencia";
 "apunta con la muñeca; dispara con un tirón corto hacia arriba. no le dispares al corazón." = "apunta con la muñeca; dispara con un tirón corto hacia arriba. no le dispares al corazón.";
 "apunta inclinando la mano y lanza con la muñeca.\nsi te tiembla el pulso, el dardo se dispersa." = "apunta inclinando la mano y lanza con la muñeca.\nsi te tiembla el pulso, el dardo se dispersa.";
@@ -91,6 +93,7 @@
 "cie: dosis eritemática estándar" = "cie: dosis eritemática estándar";
 "clara, se quema fácil" = "clara, se quema fácil";
 "clima y uv: open-meteo (cc by 4.0). exposición estimada con pronóstico y tiempo con luz diurna de Salud; el reloj no mide uv." = "clima y uv: open-meteo (cc by 4.0). exposición estimada con pronóstico y tiempo con luz diurna de Salud; el reloj no mide uv.";
+"clásico" = "clásico";
 "comida" = "comida";
 "comida · hoy" = "comida · hoy";
 "completa peso, estatura y año en tu perfil para una sugerencia" = "completa peso, estatura y año en tu perfil para una sugerencia";
@@ -110,6 +113,8 @@
 "de %@" = "de %@";
 "de rebote" = "de rebote";
 "de rebote +%lld" = "de rebote +%lld";
+"descanso" = "descanso";
+"descanso largo" = "descanso largo";
 "desde uv 3: sombra, ropa y protector" = "desde uv 3: sombra, ropa y protector";
 "deshacer el último" = "deshacer el último";
 "desliza hacia arriba: la fuerza es el largo." = "desliza hacia arriba: la fuerza es el largo.";
@@ -126,8 +131,11 @@
 "el uv ya bajó" = "el uv ya bajó";
 "empezar" = "empezar";
 "empieza hoy" = "empieza hoy";
+"empieza la ronda %lld" = "empieza la ronda %lld";
+"en curso" = "en curso";
 "en rango normal" = "en rango normal";
 "en reposo %lld · %@" = "en reposo %lld · %@";
+"enfoque" = "enfoque";
 "es de noche" = "es de noche";
 "estatura" = "estatura";
 "estimación ambiental: uv del pronóstico × 1,5 × minutos con luz diurna = j/m². dividimos entre 100 para mostrar sed." = "estimación ambiental: uv del pronóstico × 1,5 × minutos con luz diurna = j/m². dividimos entre 100 para mostrar sed.";
@@ -170,9 +178,11 @@
 "largo" = "largo";
 "las cambias cuando quieras en ajustes." = "las cambias cuando quieras en ajustes.";
 "leer de Salud" = "leer de Salud";
+"levántate, estírate y toma agua." = "levántate, estírate y toma agua.";
 "ligero" = "ligero";
 "listo" = "listo";
 "llega hasta la marca de la barra" = "llega hasta la marca de la barra";
+"llevas %lld rondas. desconecta un rato." = "llevas %lld rondas. desconecta un rato.";
 "llevas tiempo al sol sin protector. ponte uno o busca sombra." = "llevas tiempo al sol sin protector. ponte uno o busca sombra.";
 "luz diurna registrada recientemente" = "luz diurna registrada recientemente";
 "láser" = "láser";
@@ -230,6 +240,7 @@
 "pasaron 2 horas desde la última vez. si sigues al sol, reaplícalo." = "pasaron 2 horas desde la última vez. si sigues al sol, reaplícalo.";
 "pasos" = "pasos";
 "pausa" = "pausa";
+"pausar" = "pausar";
 "perfecto" = "perfecto";
 "perfecto +2" = "perfecto +2";
 "perfil" = "perfil";
@@ -252,6 +263,7 @@
 "privacy.updated" = "actualizada: 26 de octubre de 2026. responsable: kisnner obando, managua, nicaragua. contacto: kisnnerobando7@gmail.com.";
 "privacy.weather" = "para consultar el clima enviamos a open-meteo coordenadas redondeadas a dos decimales mediante https. open-meteo recibe también la ip de la conexión y puede conservar registros con coordenadas hasta 90 días para diagnóstico y prevención de abuso. no enviamos tu nombre ni datos de Salud. la ubicación también orienta la brújula de sombra en el reloj.";
 "privacy.widgets" = "las complicaciones leen un resumen de clima, agua, calorías y pasos mediante un grupo de llavero compartido con la app. ese resumen se reemplaza al actualizarse y puede permanecer tras desinstalar. está protegido por el llavero y no se migra a otro dispositivo. game center está desactivado en la versión 1.0.";
+"profundo" = "profundo";
 "pronto" = "pronto";
 "pronóstico uv: usa protección, ropa y sombra desde uv 3. no es una medición de tu piel." = "pronóstico uv: usa protección, ropa y sombra desde uv 3. no es una medición de tu piel.";
 "pronóstico: uv bajo desde las %@." = "pronóstico: uv bajo desde las %@.";
@@ -275,11 +287,15 @@
 "reventadas · %lld" = "reventadas · %lld";
 "revisar permisos de Salud" = "revisar permisos de Salud";
 "ritmo" = "ritmo";
+"ronda %lld" = "ronda %lld";
 "ronda %lld/%lld" = "ronda %lld/%lld";
+"rondas con descansos" = "rondas con descansos";
+"rápido" = "rápido";
 "se fija solo" = "se fija solo";
 "se juegan con la muñeca" = "se juegan con la muñeca";
 "sed estimadas" = "sed estimadas";
 "sedentario" = "sedentario";
+"seguir" = "seguir";
 "sensación %@" = "sensación %@";
 "sensibilidad" = "sensibilidad";
 "sensibilidad de los juegos" = "sensibilidad de los juegos";
@@ -326,12 +342,15 @@
 "toca las pompas" = "toca las pompas";
 "toca los blancos. no le dispares al corazón." = "toca los blancos. no le dispares al corazón.";
 "toca para escribir" = "toca para escribir";
+"tomé agua" = "tomé agua";
+"trabajas por rondas y el reloj te avisa con un toque cuando toca descansar. en el descanso puedes anotar un vaso de agua." = "trabajas por rondas y el reloj te avisa con un toque cuando toca descansar. en el descanso puedes anotar un vaso de agua.";
 "tu nombre" = "tu nombre";
 "tu nombre y tus datos" = "tu nombre y tus datos";
 "tu salud" = "tu salud";
 "tus metas" = "tus metas";
 "tus metas, %@" = "tus metas, %@";
 "un minuto para ti" = "un minuto para ti";
+"una cosa a la vez" = "una cosa a la vez";
 "usa protector y busca sombra." = "usa protector y busca sombra.";
 "uv %@ · %@" = "uv %@ · %@";
 "uv alto" = "uv alto";

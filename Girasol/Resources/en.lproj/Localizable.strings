@@ -31,6 +31,7 @@
 "No pude guardar el agua. Revisa el permiso de Salud." = "Couldn't save the water. Check the Health permission.";
 "Registrar un vaso de agua" = "Log a glass of water";
 "Suma un vaso de agua a tu registro de Salud." = "Adds a glass of water to your Health log.";
+"a enfocarse" = "time to focus";
 "a las %@" = "at %@";
 "acerca de" = "about";
 "actividad" = "activity";
@@ -52,6 +53,7 @@
 "alta en reposo" = "high at rest";
 "alto" = "high";
 "amigo" = "friend";
+"anotado" = "logged";
 "apariencia" = "appearance";
 "apunta con la muñeca; dispara con un tirón corto hacia arriba. no le dispares al corazón." = "aim with your wrist; fire with a short upward flick. don't shoot the heart.";
 "apunta inclinando la mano y lanza con la muñeca.\nsi te tiembla el pulso, el dardo se dispersa." = "aim by tilting your hand and throw with your wrist.\nif your hand shakes, the dart scatters.";
@@ -91,6 +93,7 @@
 "cie: dosis eritemática estándar" = "cie: standard erythema dose";
 "clara, se quema fácil" = "fair, burns easily";
 "clima y uv: open-meteo (cc by 4.0). exposición estimada con pronóstico y tiempo con luz diurna de Salud; el reloj no mide uv." = "weather and uv: open-meteo (cc by 4.0). exposure estimated from forecasts and Health time in daylight; the watch does not measure uv.";
+"clásico" = "classic";
 "comida" = "food";
 "comida · hoy" = "food · today";
 "completa peso, estatura y año en tu perfil para una sugerencia" = "fill in weight, height and year in your profile for a suggestion";
@@ -110,6 +113,8 @@
 "de %@" = "of %@";
 "de rebote" = "off the rim";
 "de rebote +%lld" = "off the rim +%lld";
+"descanso" = "break";
+"descanso largo" = "long break";
 "desde uv 3: sombra, ropa y protector" = "from uv 3: shade, clothing and sunscreen";
 "deshacer el último" = "undo the last one";
 "desliza hacia arriba: la fuerza es el largo." = "swipe up: the length is the power.";
@@ -126,8 +131,11 @@
 "el uv ya bajó" = "the uv has dropped";
 "empezar" = "start";
 "empieza hoy" = "start today";
+"empieza la ronda %lld" = "round %lld starts";
+"en curso" = "in progress";
 "en rango normal" = "in the normal range";
 "en reposo %lld · %@" = "resting %lld · %@";
+"enfoque" = "focus";
 "es de noche" = "it's night";
 "estatura" = "height";
 "estimación ambiental: uv del pronóstico × 1,5 × minutos con luz diurna = j/m². dividimos entre 100 para mostrar sed." = "ambient estimate: forecast uv × 1.5 × minutes in daylight = j/m². divide by 100 to display sed.";
@@ -170,9 +178,11 @@
 "largo" = "long";
 "las cambias cuando quieras en ajustes." = "you can change them any time in settings.";
 "leer de Salud" = "read from Health";
+"levántate, estírate y toma agua." = "stand up, stretch and drink water.";
 "ligero" = "light";
 "listo" = "done";
 "llega hasta la marca de la barra" = "reach the mark on the bar";
+"llevas %lld rondas. desconecta un rato." = "%lld rounds done. disconnect for a while.";
 "llevas tiempo al sol sin protector. ponte uno o busca sombra." = "you've been in the sun a while without sunscreen. put some on or find shade.";
 "luz diurna registrada recientemente" = "daylight recorded recently";
 "láser" = "laser";
@@ -230,6 +240,7 @@
 "pasaron 2 horas desde la última vez. si sigues al sol, reaplícalo." = "2 hours have passed since the last time. if you're still in the sun, reapply it.";
 "pasos" = "steps";
 "pausa" = "pause";
+"pausar" = "pause";
 "perfecto" = "perfect";
 "perfecto +2" = "perfect +2";
 "perfil" = "profile";
@@ -252,6 +263,7 @@
 "privacy.updated" = "updated: october 26, 2026. controller: kisnner obando, managua, nicaragua. contact: kisnnerobando7@gmail.com.";
 "privacy.weather" = "weather requests send coordinates rounded to two decimal places to open-meteo over https. open-meteo also receives the connection ip and may retain logs containing coordinates for up to 90 days for troubleshooting and abuse prevention. we do not send your name or Health data. location also orients the shade compass locally.";
 "privacy.widgets" = "complications read a weather, water, calories and steps summary through a keychain group shared with the app. updates replace this summary; it may remain after uninstalling. it is keychain protected and is not migrated to another device. game center is disabled in version 1.0.";
+"profundo" = "deep";
 "pronto" = "early";
 "pronóstico uv: usa protección, ropa y sombra desde uv 3. no es una medición de tu piel." = "uv forecast: use sunscreen, clothing and shade from uv 3. this is not a skin measurement.";
 "pronóstico: uv bajo desde las %@." = "forecast: low uv from %@.";
@@ -275,11 +287,15 @@
 "reventadas · %lld" = "popped · %lld";
 "revisar permisos de Salud" = "review Health permissions";
 "ritmo" = "rhythm";
+"ronda %lld" = "round %lld";
 "ronda %lld/%lld" = "round %lld/%lld";
+"rondas con descansos" = "rounds with breaks";
+"rápido" = "quick";
 "se fija solo" = "it sets itself";
 "se juegan con la muñeca" = "played with your wrist";
 "sed estimadas" = "estimated sed";
 "sedentario" = "sedentary";
+"seguir" = "resume";
 "sensación %@" = "feels like %@";
 "sensibilidad" = "sensitivity";
 "sensibilidad de los juegos" = "game sensitivity";
@@ -326,12 +342,15 @@
 "toca las pompas" = "tap the bubbles";
 "toca los blancos. no le dispares al corazón." = "tap the targets. don't shoot the heart.";
 "toca para escribir" = "tap to write";
+"tomé agua" = "i drank water";
+"trabajas por rondas y el reloj te avisa con un toque cuando toca descansar. en el descanso puedes anotar un vaso de agua." = "you work in rounds and the watch taps you when it's time to rest. during a break you can log a glass of water.";
 "tu nombre" = "your name";
 "tu nombre y tus datos" = "your name and details";
 "tu salud" = "your health";
 "tus metas" = "your goals";
 "tus metas, %@" = "your goals, %@";
 "un minuto para ti" = "a minute for you";
+"una cosa a la vez" = "one thing at a time";
 "usa protector y busca sombra." = "use sunscreen and find shade.";
 "uv %@ · %@" = "uv %@ · %@";
 "uv alto" = "high uv";
