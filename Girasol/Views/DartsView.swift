@@ -6,6 +6,7 @@ struct DartsView: View {
     @State private var game = Darts(seed: UInt64(Date().timeIntervalSince1970))
     @State private var running = false
     @State private var paused = false
+    @State private var pausedAt: Date?
     @State private var finished = false
     @State private var practicing = false
     @State private var practiceCount = 0
@@ -57,7 +58,7 @@ struct DartsView: View {
             })
         }
         .paperBackground()
-        .keepAwake()
+        .gameActivity { if running || practicing { pause() } }
         .navigationBarBackButtonHidden(running && !paused)
         .onDisappear { feed.stop() }
     }
@@ -88,11 +89,20 @@ struct DartsView: View {
     // MARK: pausa
 
     private func pause() {
+        guard !paused else { return }
+        feed.suspend()
+        pausedAt = Date()
         paused = true
         Haptics.play(.click)
     }
 
     private func resume() {
+        if let pausedAt, var flight = flying {
+            flight.born = flight.born.addingTimeInterval(Date().timeIntervalSince(pausedAt))
+            flying = flight
+        }
+        pausedAt = nil
+        if !settings.usesTouch { feed.resume() }
         paused = false
         Haptics.play(.click)
     }

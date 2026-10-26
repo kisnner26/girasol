@@ -25,7 +25,6 @@ struct GamesView: View {
             .padding(.horizontal, 6)
         }
         .paperBackground()
-        .keepAwake()
     }
 
     private func row(_ icon: IconKind, _ title: LocalizedStringKey, _ detail: LocalizedStringKey) -> some View {
@@ -100,14 +99,4 @@ struct PauseOverlay: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Palette.paper.opacity(0.96))
     }
-}
-
-/// avanza un juego con el reloj de pantalla: dt acotado para que una pausa no dispare la fisica.
-struct FrameClock {
-    private var last: Date?
-    mutating func dt(_ now: Date) -> Double {
-        defer { last = now }
-        return min(0.05, max(0, now.timeIntervalSince(last ?? now)))
-    }
-    mutating func reset() { last = nil }
 }

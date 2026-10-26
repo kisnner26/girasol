@@ -42,7 +42,6 @@ targets:
         WKWatchOnly: true
         WKBackgroundModes:
           - mindfulness
-          - workout-processing
         NSMotionUsageDescription: Girasol uses the watch's motion sensors so the games can recognize your wrist gestures.
         NSHealthShareUsageDescription: Girasol reads your outdoor minutes, water, calories, steps, heart rate, blood oxygen, sleep and body data to show your day and work out your goals.
         NSHealthUpdateUsageDescription: Girasol saves the water and calories you log and your breathing minutes to Health.

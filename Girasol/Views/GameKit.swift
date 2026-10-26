@@ -6,6 +6,7 @@ import GameCore
 @MainActor
 final class MotionFeed {
     var detector: SwingDetector
+    private var onSwing: ((Swing) -> Void)?
     private var tracker: AimTracker?
     private var history: [(t: Double, aim: Vec)] = []
     private var mags: [(t: Double, m: Double)] = []
@@ -32,6 +33,7 @@ final class MotionFeed {
     }
 
     func start(threshold: Double? = nil, onSwing: @escaping (Swing) -> Void) {
+        self.onSwing = onSwing
         if let threshold { detector.threshold = threshold }
         detector.reset()
         history.removeAll(); mags.removeAll()
@@ -47,9 +49,19 @@ final class MotionFeed {
         }
     }
 
-    func stop() {
+    func suspend() {
         MotionService.shared.stop()
         running = false
+    }
+
+    func resume() {
+        guard let onSwing else { return }
+        start(onSwing: onSwing)
+    }
+
+    func stop() {
+        suspend()
+        onSwing = nil
     }
 }
 
@@ -146,16 +158,27 @@ func touchSwing(translation: CGSize, width: CGFloat) -> Swing {
                  attitude: Attitude(roll: 0, pitch: 0, yaw: 0), steadiness: 1, gyroPeak: 0)
 }
 
-extension View {
-    /// avanza el juego con un reloj propio en vez del de dibujo: al bajar la muñeca el reloj se atenua y deja de
-    /// dibujar, pero la partida (y sus sensores) tiene que seguir corriendo.
-    func gameLoop(_ tick: @escaping @MainActor (Date) -> Void) -> some View {
-        task {
+private struct GameLoopModifier: ViewModifier {
+    @Environment(\.scenePhase) private var phase
+    @Environment(\.isLuminanceReduced) private var dimmed
+    let tick: @MainActor (Date) -> Void
+    private var active: Bool { phase == .active && !dimmed }
+
+    func body(content: Content) -> some View {
+        content.task(id: active) {
+            guard active else { return }
             while !Task.isCancelled {
                 tick(Date())
-                try? await Task.sleep(for: .milliseconds(16))
+                do { try await Task.sleep(for: .milliseconds(16)) }
+                catch { return }
             }
         }
+    }
+}
+
+extension View {
+    func gameLoop(_ tick: @escaping @MainActor (Date) -> Void) -> some View {
+        modifier(GameLoopModifier(tick: tick))
     }
 }
 

@@ -8,27 +8,35 @@ struct AimCalibrationView: View {
     @State private var calibrator = AimCalibrator()
     @State private var lastCaptures = 0
     @State private var attempt = 0
+    @State private var interrupted = false
     private let settings = MotionSettings.shared
 
     var body: some View {
         VStack(spacing: 8) {
             Caption("puntería")
-            switch calibrator.state {
-            case .running(let step): running(step)
-            case .done:
-                Text("✦").font(.serif(24)).foregroundStyle(Palette.ink)
-                Text("puntería lista").font(.serif(16, italic: true)).foregroundStyle(Palette.ink)
-                Button("volver") { dismiss() }.buttonStyle(InkButtonStyle()).doubleTapPrimary()
-            case .failed(let reason):
-                Text(title(reason)).font(.serif(14, italic: true)).foregroundStyle(Palette.rose).multilineTextAlignment(.center)
-                Text(hint(reason)).font(.serif(11, italic: true)).foregroundStyle(Palette.mid).multilineTextAlignment(.center)
-                Button("reintentar") { restart() }.buttonStyle(InkButtonStyle()).doubleTapPrimary()
+            if interrupted {
+                Text("calibración en pausa").font(.serif(16, italic: true))
+                Button("reintentar") { interrupted = false; restart() }.buttonStyle(InkButtonStyle()).doubleTapPrimary()
+            } else {
+                switch calibrator.state {
+                case .running(let step): running(step)
+                case .done:
+                    Image(systemName: "checkmark").font(.serif(24)).foregroundStyle(Palette.ink)
+                    Text("puntería lista").font(.serif(16, italic: true)).foregroundStyle(Palette.ink)
+                    Button("volver") { dismiss() }.buttonStyle(InkButtonStyle()).doubleTapPrimary()
+                case .failed(let reason):
+                    Text(title(reason)).font(.serif(14, italic: true)).foregroundStyle(Palette.rose).multilineTextAlignment(.center)
+                    Text(hint(reason)).font(.serif(11, italic: true)).foregroundStyle(Palette.mid).multilineTextAlignment(.center)
+                    Button("reintentar") { restart() }.buttonStyle(InkButtonStyle()).doubleTapPrimary()
+                }
             }
         }
         .padding(.horizontal, 10)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .paperBackground()
-        .keepAwake()
+        .gameActivity {
+            if case .running = calibrator.state { interrupted = true; MotionService.shared.stop() }
+        }
         .onAppear { start() }
         .onDisappear { MotionService.shared.stop() }
     }

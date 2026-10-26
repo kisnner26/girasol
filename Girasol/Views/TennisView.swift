@@ -49,7 +49,7 @@ struct TennisView: View {
             .onTapGesture { if settings.usesTouch && running && !paused { hit() } }
         }
         .paperBackground()
-        .keepAwake()
+        .gameActivity { if running { pause() } }
         .navigationBarBackButtonHidden(running && !paused)
         .onDisappear { feed.stop() }
     }
@@ -59,11 +59,14 @@ struct TennisView: View {
     // MARK: pausa
 
     private func pause() {
+        guard !paused else { return }
+        feed.suspend()
         paused = true
         Haptics.play(.click)
     }
 
     private func resume() {
+        if !settings.usesTouch { feed.resume() }
         paused = false
         clock.reset()
         Haptics.play(.click)

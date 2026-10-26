@@ -64,8 +64,8 @@ app gratuita de salud para apple watch, en español e inglés, hecha para vivir 
 
 ### juegos de muñeca
 - baloncesto, dardos, pistola (láser o pólvora) y tenis, controlados con los sensores de movimiento: lanzas, apuntas inclinando la muñeca y disparas con un tirón.
-- la partida sigue corriendo aunque bajes la muñeca: usa una sesión de entrenamiento para mantener la app viva y los sensores activos (no guarda ningún entrenamiento en Salud).
-- pensados para jugar sin mirar: cada resultado tiene su sonido y su patrón de háptico (swish, canasta, rebote, fallo corto o largo), y al volver a mirar la pantalla ves un resumen de lo que pasó.
+- al atenuarse la pantalla o salir de la app, la partida se pausa y los sensores se detienen. vuelve a mirar y pulsa continuar. los juegos no usan entrenamientos ni audio de fondo.
+- cada resultado tiene su sonido y su patrón de háptico (canasta, rebote, fallo corto o largo).
 - sonidos sintetizados en tiempo real y háptico en cada golpe. calibración de puntería y fuerza, sensibilidad ajustable y modo táctil de respaldo.
 - pompas para relajarte.
 
@@ -92,7 +92,7 @@ tu team id está en xcode > settings > accounts. con la cuenta gratuita el perfi
 
 - las complicaciones comparten datos con la app por el llavero, porque las cuentas gratuitas de apple no pueden usar app groups. el agua y las calorías se actualizan cuando abres la app o registras algo; el uv sigue la curva guardada hasta la próxima vez que abras la app.
 - no es un dispositivo médico; los cálculos de uv y calorías son aproximados.
-- al girar la muñeca para lanzar, watchOS puede apagar o atenuar la pantalla y todavía no hay forma confirmada de evitarlo (el video en bucle no funcionó). los juegos siguen corriendo y avisan con sonido y háptico, pero puede que no veas el resultado en ese instante. si el gesto no se detecta bien, ajusta la sensibilidad en ajustes > movimiento.
+- watchos controla la atenuación y la suspensión: no se fuerza la pantalla encendida. las partidas se conservan en memoria al pausar; cerrar el proceso no guarda una partida en curso.
 - requiere watchOS 27 / xcode 27 (beta al momento de escribir esto).
 
 ## pruebas

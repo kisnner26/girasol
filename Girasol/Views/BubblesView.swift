@@ -26,7 +26,7 @@ struct BubblesView: View {
             .gesture(DragGesture(minimumDistance: 0).onChanged { v in tap(v.location, geo.size) })
         }
         .paperBackground()
-        .keepAwake()
+        .gameActivity { clock.reset() }
         .onDisappear { clock.reset() }
     }
 

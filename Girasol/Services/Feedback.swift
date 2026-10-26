@@ -61,6 +61,13 @@ final class Sfx: @unchecked Sendable {
         if !p.isPlaying { p.play() }
     }
 
+    func stop() {
+        players.forEach { $0.stop() }
+        engine.stop()
+        ready = false
+        try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
+    }
+
     // MARK: sintesis
 
     /// genera `duration` segundos; `gen` recibe el tiempo y un estado de fase que puede acumular.
