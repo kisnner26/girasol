@@ -91,6 +91,7 @@
 "calibrar" = "calibrate";
 "calibrar la muñeca" = "calibrate your wrist";
 "calor extremo, hidrátate" = "extreme heat, hydrate";
+"cambió tu zona horaria (%@). puedes subir tu meta de agua %@ durante %lld días mientras te adaptas." = "your time zone changed (%@). you can raise your water goal by %@ for %lld days while you adjust.";
 "caminas %@ pasos menos" = "you walk %@ fewer steps";
 "caminas %@ pasos más" = "you walk %@ more steps";
 "caminaste más que la semana anterior." = "you walked more than the previous week.";
@@ -212,6 +213,7 @@
 "menos que la semana pasada" = "less than last week";
 "meta %lld h" = "goal %lld h";
 "meta de agua" = "water goal";
+"meta de agua %@ hasta el %@" = "water goal %@ until %@";
 "meta de comida" = "food goal";
 "meta de pasos" = "step goal";
 "metas" = "goals";
@@ -219,6 +221,7 @@
 "mientras no mirabas" = "while you weren't looking";
 "mililitros" = "milliliters";
 "moderado" = "moderate";
+"modo viaje" = "travel mode";
 "modo: láser ✦" = "mode: laser ✦";
 "modo: pistola" = "mode: pistol";
 "morena clara, rara vez se quema" = "light brown, rarely burns";
@@ -336,6 +339,7 @@
 "sostén el reloj como para jugar y quédate quieto." = "hold the watch as if you were playing and stay still.";
 "suave" = "gentle";
 "subir de peso" = "gain weight";
+"subir la meta" = "raise the goal";
 "sueño" = "sleep";
 "sugerida: %lld kcal" = "suggested: %lld kcal";
 "sugerida: %lld ml" = "suggested: %lld ml";
@@ -385,6 +389,7 @@
 "vaso al %lld %%" = "glass at %lld %%";
 "vaso de agua" = "glass of water";
 "versión %@" = "version %@";
+"viaje" = "travel";
 "vibra al ritmo: sube al inhalar, baja al exhalar. funciona con la muñeca baja." = "vibrates with the rhythm: rises as you inhale, falls as you exhale. works with your wrist down.";
 "volver" = "back";
 "vuelve al centro e inclina hacia arriba." = "go back to center and tilt upward.";

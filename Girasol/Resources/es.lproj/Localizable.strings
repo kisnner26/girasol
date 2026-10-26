@@ -91,6 +91,7 @@
 "calibrar" = "calibrar";
 "calibrar la muñeca" = "calibrar la muñeca";
 "calor extremo, hidrátate" = "calor extremo, hidrátate";
+"cambió tu zona horaria (%@). puedes subir tu meta de agua %@ durante %lld días mientras te adaptas." = "cambió tu zona horaria (%@). puedes subir tu meta de agua %@ durante %lld días mientras te adaptas.";
 "caminas %@ pasos menos" = "caminas %@ pasos menos";
 "caminas %@ pasos más" = "caminas %@ pasos más";
 "caminaste más que la semana anterior." = "caminaste más que la semana anterior.";
@@ -212,6 +213,7 @@
 "menos que la semana pasada" = "menos que la semana pasada";
 "meta %lld h" = "meta %lld h";
 "meta de agua" = "meta de agua";
+"meta de agua %@ hasta el %@" = "meta de agua %@ hasta el %@";
 "meta de comida" = "meta de comida";
 "meta de pasos" = "meta de pasos";
 "metas" = "metas";
@@ -219,6 +221,7 @@
 "mientras no mirabas" = "mientras no mirabas";
 "mililitros" = "mililitros";
 "moderado" = "moderado";
+"modo viaje" = "modo viaje";
 "modo: láser ✦" = "modo: láser ✦";
 "modo: pistola" = "modo: pistola";
 "morena clara, rara vez se quema" = "morena clara, rara vez se quema";
@@ -336,6 +339,7 @@
 "sostén el reloj como para jugar y quédate quieto." = "sostén el reloj como para jugar y quédate quieto.";
 "suave" = "suave";
 "subir de peso" = "subir de peso";
+"subir la meta" = "subir la meta";
 "sueño" = "sueño";
 "sugerida: %lld kcal" = "sugerida: %lld kcal";
 "sugerida: %lld ml" = "sugerida: %lld ml";
@@ -385,6 +389,7 @@
 "vaso al %lld %%" = "vaso al %lld %%";
 "vaso de agua" = "vaso de agua";
 "versión %@" = "versión %@";
+"viaje" = "viaje";
 "vibra al ritmo: sube al inhalar, baja al exhalar. funciona con la muñeca baja." = "vibra al ritmo: sube al inhalar, baja al exhalar. funciona con la muñeca baja.";
 "volver" = "volver";
 "vuelve al centro e inclina hacia arriba." = "vuelve al centro e inclina hacia arriba.";

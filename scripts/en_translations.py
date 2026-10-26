@@ -398,6 +398,11 @@ APP = {
 "bebiste más que la semana anterior. sigue así.": "you drank more than the previous week. keep it up.",
 "caminaste más que la semana anterior.": "you walked more than the previous week.",
 "semana estable, muy parecida a la anterior.": "a steady week, very close to the previous one.",
+"viaje": "travel",
+"modo viaje": "travel mode",
+"cambió tu zona horaria (%@). puedes subir tu meta de agua %@ durante %lld días mientras te adaptas.": "your time zone changed (%@). you can raise your water goal by %@ for %lld days while you adjust.",
+"meta de agua %@ hasta el %@": "water goal %@ until %@",
+"subir la meta": "raise the goal",
 }
 
 WIDGETS = {
