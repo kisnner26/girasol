@@ -189,6 +189,7 @@ struct PistolView: View {
         if game.isOver {
             running = false
             finished = true
+            if game.score > best { GameCenterService.shared.submit(score: game.score, leaderboardID: GameCenterService.LeaderboardID.pistol) }
             best = max(best, game.score)
             feed.stop()
             Haptics.play(.notification)

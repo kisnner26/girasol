@@ -175,6 +175,7 @@ struct DartsView: View {
     private func finishGame() {
         running = false
         finished = true
+        if game.total > best { GameCenterService.shared.submit(score: game.total, leaderboardID: GameCenterService.LeaderboardID.darts) }
         best = max(best, game.total)
         feed.stop()
         Haptics.play(.notification)

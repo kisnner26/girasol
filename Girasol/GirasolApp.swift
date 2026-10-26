@@ -11,6 +11,7 @@ struct GirasolApp: App {
     init() {
         // los paquetes escriben en español; la app les pone la traduccion segun el idioma del reloj
         L10n.translate = { Lang.bundle.localizedString(forKey: $0, value: $0, table: nil) }
+        GameCenterService.shared.authenticate()
     }
 
     var body: some Scene {
