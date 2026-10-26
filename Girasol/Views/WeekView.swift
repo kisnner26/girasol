@@ -15,7 +15,7 @@ struct WeekView: View {
                     Text("\(streak)").font(.serif(44)).foregroundStyle(Palette.ink)
                     Text(streak == 1 ? "día" : "días").font(.serif(14, italic: true)).foregroundStyle(Palette.mid)
                 }
-                Text("con agua, pasos y sol dentro de tu límite").font(.serif(10, italic: true)).foregroundStyle(Palette.mid)
+                Text("con tus metas de agua y pasos").font(.serif(10, italic: true)).foregroundStyle(Palette.mid)
                     .multilineTextAlignment(.center)
                 Hairline().padding(.vertical, 4)
 
@@ -25,13 +25,13 @@ struct WeekView: View {
                     }
                 }
                 HStack(spacing: 10) {
-                    key("agua", Palette.moss); key("pasos", Palette.olive); key("sol", Palette.rose)
+                    key("agua", Palette.moss); key("pasos", Palette.olive)
                 }
                 .padding(.top, 2)
 
                 Hairline().padding(.vertical, 4)
                 Text("mejor racha: \(health.bestStreak)").font(.serif(12, italic: true)).foregroundStyle(Palette.ink)
-                Text("cuenta lo que guarda Salud en los últimos 7 días; el sol lo mide Girasol cuando la abres.")
+                Text("agua y pasos registrados en Salud; el uv no determina la racha.")
                     .font(.serif(9, italic: true)).foregroundStyle(Palette.faint).multilineTextAlignment(.center)
             }
             .padding(.horizontal, 6)
@@ -44,7 +44,6 @@ struct WeekView: View {
         VStack(spacing: 5) {
             dot(r?.waterMet, Palette.moss)
             dot(r?.stepsMet, Palette.olive)
-            dot(r.map { $0.sunFraction == nil ? nil : $0.sunMet } ?? nil, Palette.rose)
             Text(initial(day)).font(.serif(9, italic: isToday)).foregroundStyle(isToday ? Palette.ink : Palette.mid)
         }
         .frame(maxWidth: .infinity)

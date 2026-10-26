@@ -208,13 +208,11 @@ struct SettingsDetail: View {
             .onChange(of: store.profile) { Task { await health.scheduleWaterReminders() } }
         case .sun:
             SettingsPage(title: "sol") {
-                ChoiceRow(title: "piel", options: SkinType.allCases.map { ($0, "\($0.title) · \($0.detail)") }, selection: $settings.skin)
                 ChoiceRow(title: "protector", options: Sunscreen.options.map { ($0, $0.title) }, selection: $settings.sunscreen)
                 Toggle(isOn: $settings.alertsEnabled) { Caption("alertas de uv") }.tint(Palette.moss)
                 Toggle(isOn: $settings.reapplyReminders) { Caption("reaplicar protector") }.tint(Palette.moss)
                 Button("actualizar el clima") { Task { await sun.refresh() } }.buttonStyle(InkButtonStyle())
             }
-            .onChange(of: settings.skin) { Task { await sun.settingsChanged() } }
             .onChange(of: settings.sunscreen) { Task { await sun.settingsChanged() } }
             .onChange(of: settings.alertsEnabled) { Task { await sun.settingsChanged() } }
             .onChange(of: settings.reapplyReminders) { Task { await sun.settingsChanged() } }
@@ -233,11 +231,11 @@ struct SettingsDetail: View {
             SettingsPage(title: "acerca de") {
                 Text("girasol").font(.serif(20, italic: true)).foregroundStyle(Palette.ink)
                 Caption("versión \(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "")")
-                Text("clima y uv: Open-Meteo.com (cc by 4.0). exposición: el sensor de luz de tu reloj. salud: la app Salud, en tu dispositivo.")
+                Text("clima y uv: open-meteo (cc by 4.0). exposición estimada con pronóstico y tiempo con luz diurna de Salud; el reloj no mide uv.")
                     .font(.serif(10, italic: true)).foregroundStyle(Palette.mid).multilineTextAlignment(.center)
                 Text("girasol no es un dispositivo médico. los cálculos son aproximados y no sustituyen a un profesional.")
                     .font(.serif(10, italic: true)).foregroundStyle(Palette.mid).multilineTextAlignment(.center)
-                Text("✦").font(.serif(12)).foregroundStyle(Palette.faint)
+                NavigationLink { SolarMethodView() } label: { Caption("cómo se estima") }
             }
         }
     }

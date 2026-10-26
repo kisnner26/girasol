@@ -15,7 +15,7 @@ struct SleepView: View {
                         Text(String(format: "%.1f", n.hours)).font(.serif(40)).foregroundStyle(Palette.ink)
                         Text("h").font(.serif(14, italic: true)).foregroundStyle(Palette.mid)
                     }
-                    Text(n.hours >= Sleep.goalHours ? "descansaste lo que necesitas" : "menos de \(Int(Sleep.goalHours)) h")
+                    Text(n.hours >= Sleep.goalHours ? "7 h o más registradas" : "menos de \(Int(Sleep.goalHours)) h")
                         .font(.serif(12, italic: true)).foregroundStyle(n.hours >= Sleep.goalHours ? Palette.moss : Palette.rose)
                     Hairline().padding(.vertical, 3)
                     bars
@@ -26,6 +26,7 @@ struct SleepView: View {
                     Text("duerme con el reloj puesto y activa el seguimiento de sueño en la app Sueño del iPhone.")
                         .font(.serif(11, italic: true)).foregroundStyle(Palette.mid).multilineTextAlignment(.center)
                 }
+                HealthNotice()
                 Button("actualizar") { Task { await health.refreshHabits() } }.buttonStyle(QuietButtonStyle()).padding(.top, 4)
             }
             .padding(.horizontal, 8)

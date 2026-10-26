@@ -19,11 +19,11 @@ final class StreakTests: XCTestCase {
         XCTAssertTrue(rec(1, steps: 8000).stepsMet); XCTAssertFalse(rec(1, steps: 7999).stepsMet)
     }
 
-    func testSunLimitOnlyFailsWhenMeasuredAndExceeded() {
-        XCTAssertTrue(rec(1, sun: nil).sunMet, "sin medicion no se castiga")
-        XCTAssertTrue(rec(1, sun: 0.99).sunMet)
-        XCTAssertFalse(rec(1, sun: 1.0).sunMet)
-        XCTAssertFalse(rec(1, sun: 1.0).allMet)
+    func testLegacySunEstimatesDoNotDetermineHealthGoals() {
+        for value in [0.0, 0.99, 1.0, 5.0] {
+            XCTAssertTrue(rec(1, sun: value).allMet)
+        }
+        XCTAssertFalse(rec(1, water: 100, sun: 0).allMet)
     }
 
     func testAZeroGoalIsNeverMet() {
@@ -54,9 +54,9 @@ final class StreakTests: XCTestCase {
         XCTAssertEqual(Streaks.current([rec(20, steps: 10)], today: day(20), calendar: cal), 0)
     }
 
-    func testSunOverLimitBreaksTheStreak() {
+    func testLegacySunValueDoesNotBreakTheStreak() {
         let r = [rec(18), rec(19, sun: 1.3), rec(20)]
-        XCTAssertEqual(Streaks.current(r, today: day(20), calendar: cal), 1)
+        XCTAssertEqual(Streaks.current(r, today: day(20), calendar: cal), 3)
     }
 
     func testBestStreak() {

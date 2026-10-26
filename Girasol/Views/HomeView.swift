@@ -25,7 +25,7 @@ struct HomeView: View {
                 ZStack {
                     Ring(fraction: health.waterFraction, tint: Palette.moss, width: 5).frame(width: 104, height: 104)
                     Ring(fraction: health.kcalFraction, tint: Palette.olive, width: 5).frame(width: 82, height: 82)
-                    Ring(fraction: sun.summary?.fraction ?? 0, tint: Palette.rose, width: 5).frame(width: 60, height: 60)
+                    Ring(fraction: min(1, max(0, sun.uvNow / 11)), tint: Palette.rose, width: 5).frame(width: 60, height: 60)
                     Text("✦").font(.serif(14)).foregroundStyle(Palette.mid)
                 }
                 .padding(.vertical, 6)

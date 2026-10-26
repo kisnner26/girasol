@@ -44,18 +44,6 @@ public enum UVCategory: Int, CaseIterable, Comparable, Sendable {
 public enum SkinType: Int, CaseIterable, Codable, Sendable {
     case i = 1, ii, iii, iv, v, vi
 
-    /// j/m2 de radiacion eritemica que producen un enrojecimiento minimo.
-    public var medJoulesPerSquareMeter: Double {
-        switch self {
-        case .i: 200
-        case .ii: 250
-        case .iii: 300
-        case .iv: 450
-        case .v: 600
-        case .vi: 900
-        }
-    }
-
     public var title: String { L10n.tr("tipo %@", ["I", "II", "III", "IV", "V", "VI"][rawValue - 1]) }
 
     public var detail: String {
@@ -70,14 +58,12 @@ public enum SkinType: Int, CaseIterable, Codable, Sendable {
     }
 }
 
-/// factor de proteccion solar. el spf de etiqueta se mide con una capa gruesa que casi nadie
-/// aplica, asi que se toma la mitad como factor efectivo.
+/// spf declarado por el usuario, solo para mostrar su preferencia; no estima proteccion efectiva.
 public struct Sunscreen: Hashable, Codable, Sendable {
     public let spf: Int
     public init(spf: Int) { self.spf = spf }
     public static let none = Sunscreen(spf: 0)
     public static let options: [Sunscreen] = [0, 15, 30, 50].map(Sunscreen.init(spf:))
 
-    public var protectionFactor: Double { spf <= 0 ? 1 : max(1, Double(spf) * 0.5) }
     public var title: String { spf <= 0 ? L10n.tr("sin protector") : "SPF \(spf)" }
 }

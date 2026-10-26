@@ -7,31 +7,18 @@ struct ExposureView: View {
     var body: some View {
         ScrollView {
             if let s = model.summary {
-                let f = s.fraction
-                let tint: Color = s.stage == .none ? Palette.moss : s.stage == .approaching ? Palette.olive : Palette.rose
                 VStack(spacing: 6) {
-                    Caption("exposición de hoy")
-                    ZStack {
-                        Circle().stroke(Palette.faint, lineWidth: 0.7)
-                        ForEach(0..<4, id: \.self) { i in
-                            Rectangle().fill(Palette.ink.opacity(0.45)).frame(width: 0.7, height: 5)
-                                .offset(y: -57).rotationEffect(.degrees(Double(i) * 90))
-                        }
-                        Circle().trim(from: 0, to: min(1, f))
-                            .stroke(tint, style: StrokeStyle(lineWidth: 2, lineCap: .round))
-                            .rotationEffect(.degrees(-90))
-                        VStack(spacing: 0) {
-                            HStack(alignment: .firstTextBaseline, spacing: 1) {
-                                Text("\(Int((f * 100).rounded()))").font(.serif(36)).foregroundStyle(Palette.ink)
-                                Text("%").font(.serif(14, italic: true)).foregroundStyle(Palette.mid)
-                            }
-                            Text("de tu límite").font(.serif(11, italic: true)).foregroundStyle(Palette.mid)
-                        }
+                    Caption("exposición ambiental estimada")
+                    Text(s.standardErythemaDoses, format: .number.precision(.fractionLength(1)))
+                        .font(.serif(36)).foregroundStyle(Palette.ink)
+                    Caption("sed estimadas")
+                    if s.estimatedMinutes < s.daylightMinutes {
+                        Text("estimación parcial: faltan horas del pronóstico").font(.serif(11, italic: true)).foregroundStyle(Palette.rose)
                     }
-                    .frame(width: 124, height: 124)
-                    .padding(.vertical, 2)
-
-                    Text(status(s.stage)).font(.serif(15, italic: true)).foregroundStyle(tint)
+                    Text("1 sed = 100 j/m². no es una dosis segura ni una medición de tu piel.")
+                        .font(.serif(11, italic: true)).foregroundStyle(Palette.mid).multilineTextAlignment(.center)
+                    NavigationLink { SolarMethodView() } label: { Caption("cómo se estima") }
+                    HealthNotice()
                     Hairline().padding(.vertical, 2)
                     if s.daylightMinutes > 0 {
                         Caption("\(minutesText(s.daylightMinutes)) al aire libre")
@@ -39,7 +26,7 @@ struct ExposureView: View {
                         Text("sin minutos al aire libre registrados hoy").font(.serif(11, italic: true))
                             .foregroundStyle(Palette.mid).multilineTextAlignment(.center)
                     }
-                    if model.sunNow { Caption("✦ al sol ahora", color: Palette.ink) }
+                    if model.sunNow { Caption("luz diurna registrada recientemente", color: Palette.ink) }
                     if model.shadeHeading != nil {
                         NavigationLink(value: Route.shadeCompass) { Caption("brújula de sombra", color: Palette.ink) }
                             .buttonStyle(.plain)
@@ -54,13 +41,7 @@ struct ExposureView: View {
         .containerBackground(Palette.paper, for: .tabView)
     }
 
-    private func status(_ stage: LimitStage) -> String {
-        switch stage {
-        case .none: loc("dentro de lo seguro")
-        case .approaching: loc("cerca del límite")
-        case .reached: loc("límite superado")
-        }
-    }
+
 }
 
 /// cuenta atras para reaplicar protector, o el boton para empezarla.

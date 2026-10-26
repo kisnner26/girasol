@@ -32,11 +32,11 @@ public struct Advice: Sendable, Equatable {
 
 /// "¿puedo salir ahora?" a partir del uv, el calor y lo que ya llevas recibido hoy.
 public enum Advisor {
-    public static func advice(uvi: Double, apparent: Double, isDay: Bool, usedFraction: Double) -> Advice {
+    public static func advice(uvi: Double, apparent: Double, isDay: Bool) -> Advice {
         let heat = HeatLevel(apparent: apparent)
 
         if !isDay {
-            return Advice(level: .ok, headline: L10n.tr("es de noche"), detail: L10n.tr("sin radiación uv ahora"), heat: heat)
+            return Advice(level: .ok, headline: L10n.tr("es de noche"), detail: L10n.tr("uv nocturno estimado"), heat: heat)
         }
 
         var level: AdviceLevel
@@ -44,21 +44,15 @@ public enum Advisor {
         var detail: String
         switch UVCategory(uvi: uvi) {
         case .low:
-            (level, headline, detail) = (.ok, L10n.tr("sin problema"), L10n.tr("uv bajo, puedes salir"))
+            (level, headline, detail) = (.ok, L10n.tr("uv bajo"), L10n.tr("el riesgo varía con la exposición y tu situación personal"))
         case .moderate:
-            (level, headline, detail) = (.care, L10n.tr("con protección"), L10n.tr("protector si vas a estar más de media hora"))
+            (level, headline, detail) = (.care, L10n.tr("con protección"), L10n.tr("desde uv 3: sombra, ropa y protector"))
         case .high:
             (level, headline, detail) = (.care, L10n.tr("con cuidado"), L10n.tr("protector, sombrero y sombra cuando puedas"))
         case .veryHigh:
             (level, headline, detail) = (.avoid, L10n.tr("mejor evitar"), L10n.tr("uv muy alto, sal solo lo necesario"))
         case .extreme:
-            (level, headline, detail) = (.stay, L10n.tr("quédate en la sombra"), L10n.tr("uv extremo, la piel se daña en minutos"))
-        }
-
-        if usedFraction >= 1 {
-            (level, headline, detail) = (.stay, L10n.tr("límite superado"), L10n.tr("tu piel ya recibió hoy lo que tolera: sombra"))
-        } else if usedFraction >= 0.8, level < .avoid {
-            (level, headline, detail) = (.avoid, L10n.tr("cerca de tu límite"), L10n.tr("te queda poco margen hoy, busca sombra"))
+            (level, headline, detail) = (.stay, L10n.tr("quédate en la sombra"), L10n.tr("uv extremo: reduce la exposición y busca sombra"))
         }
 
         switch heat {

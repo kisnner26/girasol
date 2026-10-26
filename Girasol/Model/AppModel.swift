@@ -43,12 +43,7 @@ final class AppModel {
 
     var advice: Advice? {
         guard let w = weather else { return nil }
-        return Advisor.advice(uvi: uvNow, apparent: w.current.apparentTemperature, isDay: w.current.isDay, usedFraction: summary?.fraction ?? 0)
-    }
-
-    /// minutos que aguanta tu piel a este uv con lo que ya llevas hoy.
-    var safeMinutes: Double? {
-        Exposure.minutesToLimit(uvi: uvNow, usedFraction: summary?.fraction ?? 0, skin: settings.skin, protection: settings.sunscreen.protectionFactor)
+        return Advisor.advice(uvi: uvNow, apparent: w.current.apparentTemperature, isDay: w.current.isDay)
     }
 
     var outlook: DayOutlook? {
@@ -111,9 +106,8 @@ final class AppModel {
     /// recalcula la exposicion cuando cambian la piel o el protector, sin volver a pedir datos.
     func recompute() {
         guard let w = weather else { return }
-        summary = ExposureSummary.build(daylight: reading.minutesByHour, curve: w.curve, skin: settings.skin, protection: settings.sunscreen.protectionFactor)
+        summary = ExposureSummary.build(daylight: reading.minutesByHour, curve: w.curve)
         sunNow = reading.lastSampleEnd.map { now.timeIntervalSince($0) < 20 * 60 } ?? false
-        if let f = summary?.fraction, !demo { HabitStore.shared.recordSun(fraction: f, day: Calendar.current.startOfDay(for: now), profile: ProfileStore.shared.profile) }
     }
 
     func settingsChanged() async {
@@ -169,9 +163,8 @@ final class AppModel {
         guard !demo, let w = weather else { return }
         guard settings.alertsEnabled else { notifications.cancelAll(); return }
         guard await notifications.requestAccess() else { return }
-        let plan = AlertPlanner.plan(hours: w.hours, now: now, skin: settings.skin, protection: settings.sunscreen.protectionFactor, timeZone: w.timeZone)
+        let plan = AlertPlanner.plan(hours: w.hours, now: now, timeZone: w.timeZone)
         await notifications.schedule(plan)
-        if let s = summary { await notifications.notifyLimit(s.stage, fraction: s.fraction, now: now) }
     }
 
 }

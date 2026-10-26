@@ -7,7 +7,7 @@ public struct DayRecord: Codable, Equatable, Sendable {
     public var waterGoal: Int
     public var steps: Int
     public var stepGoal: Int
-    /// fraccion de tu limite de uv que llegaste a recibir ese dia; nil si la app no llego a medirlo.
+    /// dato legado conservado para decodificar el historial; no afecta las metas.
     public var sunFraction: Double?
 
     public init(day: Date, waterMl: Int, waterGoal: Int, steps: Int, stepGoal: Int, sunFraction: Double? = nil) {
@@ -17,13 +17,11 @@ public struct DayRecord: Codable, Equatable, Sendable {
 
     public var waterMet: Bool { waterGoal > 0 && waterMl >= waterGoal }
     public var stepsMet: Bool { stepGoal > 0 && steps >= stepGoal }
-    /// sin dato de uv no se castiga: solo cuenta como fallo si se midio y pasaste tu limite.
-    public var sunMet: Bool { (sunFraction ?? 0) < 1 }
-    public var allMet: Bool { waterMet && stepsMet && sunMet }
+    public var allMet: Bool { waterMet && stepsMet }
 }
 
 public enum Streaks {
-    /// dias seguidos con las tres metas cumplidas. hoy suma si ya cumpliste, pero no rompe la racha mientras el dia sigue.
+    /// dias seguidos con las metas de agua y pasos cumplidas. hoy suma si ya cumpliste, pero no rompe la racha mientras el dia sigue.
     public static func current(_ records: [DayRecord], today: Date, calendar: Calendar = .current) -> Int {
         let byDay = index(records, calendar)
         let start = calendar.startOfDay(for: today)

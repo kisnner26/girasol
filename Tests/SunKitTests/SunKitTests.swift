@@ -25,12 +25,9 @@ final class UVTests: XCTestCase {
         XCTAssertTrue(UVCategory.low < .extreme)
     }
 
-    func testSunscreenFactor() {
-        XCTAssertEqual(Sunscreen.none.protectionFactor, 1)
-        XCTAssertEqual(Sunscreen(spf: 15).protectionFactor, 7.5)
-        XCTAssertEqual(Sunscreen(spf: 30).protectionFactor, 15)
-        XCTAssertEqual(Sunscreen(spf: 50).protectionFactor, 25)
-        XCTAssertEqual(Sunscreen(spf: 1).protectionFactor, 1, "nunca menos que sin protector")
+    func testSunscreenIsARecordedPreference() {
+        XCTAssertEqual(Sunscreen.options.map(\.spf), [0, 15, 30, 50])
+        XCTAssertEqual(Sunscreen.none.spf, 0)
     }
 }
 
@@ -51,26 +48,21 @@ final class SolarPositionTests: XCTestCase {
 
 final class ExposureTests: XCTestCase {
     func testDoseKnownValue() {
-        // uv 8 durante 25 min = 300 j/m2 = la med del tipo iii
+        // uv 8 durante 25 min = 300 j/m² de exposicion ambiental estimada
         XCTAssertEqual(Exposure.dose(uvi: 8, minutes: 25), 300, accuracy: 1e-9)
-        XCTAssertEqual(Exposure.fractionOfLimit(dose: 300, skin: .iii), 1, accuracy: 1e-9)
-        XCTAssertEqual(Exposure.fractionOfLimit(dose: 300, skin: .i), 1.5, accuracy: 1e-9)
     }
 
-    func testDoseIgnoresNothingAndProtects() {
-        XCTAssertEqual(Exposure.dose(uvi: 0, minutes: 60), 0)
-        XCTAssertEqual(Exposure.dose(uvi: 8, minutes: 0), 0)
-        XCTAssertEqual(Exposure.dose(uvi: 8, minutes: 25, protection: 15), 20, accuracy: 1e-9)
-        XCTAssertEqual(Exposure.dose(uvi: 8, minutes: 25, protection: 0.3), 300, accuracy: 1e-9, "el factor nunca amplifica")
+    func testDoseRejectsInvalidInputs() {
+        for value in [0.0, -1, .nan, .infinity] {
+            XCTAssertEqual(Exposure.dose(uvi: value, minutes: 60), 0)
+            XCTAssertEqual(Exposure.dose(uvi: 8, minutes: value), 0)
+        }
     }
 
-    func testMinutesToLimit() throws {
-        XCTAssertEqual(try XCTUnwrap(Exposure.minutesToLimit(uvi: 8, usedFraction: 0, skin: .iii)), 25, accuracy: 1e-9)
-        XCTAssertEqual(try XCTUnwrap(Exposure.minutesToLimit(uvi: 8, usedFraction: 0.5, skin: .iii)), 12.5, accuracy: 1e-9)
-        XCTAssertEqual(try XCTUnwrap(Exposure.minutesToLimit(uvi: 8, usedFraction: 0, skin: .iii, protection: 15)), 375, accuracy: 1e-9)
-        XCTAssertEqual(try XCTUnwrap(Exposure.minutesToLimit(uvi: 8, usedFraction: 0, skin: .vi)), 75, accuracy: 1e-9)
-        XCTAssertEqual(try XCTUnwrap(Exposure.minutesToLimit(uvi: 8, usedFraction: 1.4, skin: .iii)), 0)
-        XCTAssertNil(Exposure.minutesToLimit(uvi: 0.4, usedFraction: 0, skin: .iii), "uv casi nulo: sin limite practico")
+    func testStandardDoseIsNotAnIndividualLimit() {
+        let curve = UVCurve(hours: hours([("12:00", 8), ("13:00", 8)]))
+        let summary = ExposureSummary.build(daylight: [date("12:00"): 25], curve: curve)
+        XCTAssertEqual(summary.standardErythemaDoses, 3, accuracy: 1e-9)
     }
 
     func testCurveInterpolation() {
@@ -92,31 +84,35 @@ final class ExposureTests: XCTestCase {
         let curve = UVCurve(hours: hours([("11:00", 6), ("12:00", 8), ("13:00", 8), ("14:00", 6)]))
         // 30 min en la hora de las 12 (uv 8 a mitad de hora) + 60 min en la de las 13
         let s = ExposureSummary.build(daylight: [date("12:00"): 30, date("13:00"): 60, date("09:00"): 0],
-                                      curve: curve, skin: .iii, protection: 1)
+                                      curve: curve)
         XCTAssertEqual(s.daylightMinutes, 90)
         let expected = 8 * 1.5 * 30 + 7 * 1.5 * 60   // 12:30 -> uv 8, 13:30 -> uv 7
         XCTAssertEqual(s.dose, expected, accuracy: 1e-9)
-        XCTAssertEqual(s.fraction, expected / 300, accuracy: 1e-9)
-        XCTAssertEqual(s.stage, .reached)
+        XCTAssertEqual(s.standardErythemaDoses, expected / 100, accuracy: 1e-9)
     }
 
     func testSummaryProtectionAndEmpty() {
         let curve = UVCurve(hours: hours([("12:00", 8), ("13:00", 8)]))
-        let sp = ExposureSummary.build(daylight: [date("12:00"): 30], curve: curve, skin: .iii, protection: 15)
-        XCTAssertEqual(sp.dose, 24, accuracy: 1e-9)
-        XCTAssertEqual(sp.stage, .none)
-        let none = ExposureSummary.build(daylight: [:], curve: curve, skin: .iii, protection: 1)
-        XCTAssertEqual(none.fraction, 0)
+        let sp = ExposureSummary.build(daylight: [date("12:00"): 30], curve: curve)
+        XCTAssertEqual(sp.dose, 360, accuracy: 1e-9)
+        let none = ExposureSummary.build(daylight: [:], curve: curve)
+        XCTAssertEqual(none.standardErythemaDoses, 0)
         XCTAssertEqual(none.daylightMinutes, 0)
     }
 
-    func testLimitStage() {
-        XCTAssertEqual(LimitStage(fraction: 0), .none)
-        XCTAssertEqual(LimitStage(fraction: 0.79), .none)
-        XCTAssertEqual(LimitStage(fraction: 0.8), .approaching)
-        XCTAssertEqual(LimitStage(fraction: 0.99), .approaching)
-        XCTAssertEqual(LimitStage(fraction: 1), .reached)
-        XCTAssertTrue(LimitStage.none < .approaching && LimitStage.approaching < .reached)
+    func testMissingForecastDoesNotInventExposure() {
+        let curve = UVCurve(hours: hours([("12:00", 8)]))
+        let summary = ExposureSummary.build(daylight: [date("09:00"): 20, date("12:00"): 10], curve: curve)
+        XCTAssertEqual(summary.daylightMinutes, 30)
+        XCTAssertEqual(summary.estimatedMinutes, 10)
+        XCTAssertEqual(summary.dose, 120)
+    }
+
+    func testDaylightCannotExceedBucketDuration() {
+        let curve = UVCurve(hours: hours([("12:00", 8), ("13:00", 8)]))
+        let summary = ExposureSummary.build(daylight: [date("12:00"): 90], curve: curve)
+        XCTAssertEqual(summary.daylightMinutes, 60)
+        XCTAssertEqual(summary.dose, 720)
     }
 }
 
@@ -175,7 +171,7 @@ final class WeatherTests: XCTestCase {
 
 final class AdviceTests: XCTestCase {
     private func a(_ uvi: Double, temp: Double = 25, day: Bool = true, used: Double = 0) -> Advice {
-        Advisor.advice(uvi: uvi, apparent: temp, isDay: day, usedFraction: used)
+        Advisor.advice(uvi: uvi, apparent: temp, isDay: day)
     }
 
     func testByCategory() {
@@ -194,14 +190,10 @@ final class AdviceTests: XCTestCase {
         XCTAssertEqual(n.headline, "es de noche")
     }
 
-    func testNearAndOverLimit() {
-        XCTAssertEqual(a(1, used: 0.79).level, .ok)
-        XCTAssertEqual(a(1, used: 0.8).level, .avoid)
-        XCTAssertEqual(a(1, used: 0.8).headline, "cerca de tu límite")
-        XCTAssertEqual(a(4, used: 0.9).level, .avoid)
-        XCTAssertEqual(a(1, used: 1).level, .stay)
-        XCTAssertEqual(a(1, used: 1).headline, "límite superado")
-        XCTAssertEqual(a(12, used: 0.9).level, .stay, "no se rebaja un nivel ya mas alto")
+    func testModerateUVRequiresProtectionWithoutWaiting() {
+        XCTAssertEqual(a(3).level, .care)
+        XCTAssertFalse(a(3).detail.contains("media hora"))
+        XCTAssertFalse(a(1).detail.contains("puedes salir"))
     }
 
     func testHeat() {
@@ -224,7 +216,7 @@ final class AlertTests: XCTestCase {
                              ("12:00", 8.5), ("13:00", 9), ("14:00", 8), ("15:00", 6), ("16:00", 4), ("17:00", 2.5), ("18:00", 1)])
 
     private func plan(now: String, skin: SkinType = .iii, protection: Double = 1) -> [PlannedAlert] {
-        AlertPlanner.plan(hours: day, now: date(now), skin: skin, protection: protection, timeZone: utc)
+        AlertPlanner.plan(hours: day, now: date(now), timeZone: utc)
     }
 
     func testThresholdCrossingsAndReturn() {
@@ -254,16 +246,16 @@ final class AlertTests: XCTestCase {
         XCTAssertEqual(p.map(\.date), p.map(\.date).sorted())
     }
 
-    func testBodyReflectsSkinAndSunscreen() {
-        // uv 3 cruza a las 9; pico de las 3 horas siguientes = 6.5 -> 300 / (6.5 * 1.5) = 30.8 min
-        XCTAssertTrue(plan(now: "07:00")[0].body.contains("31 min"), plan(now: "07:00")[0].body)
-        XCTAssertTrue(plan(now: "07:00", skin: .vi)[0].body.contains("92 min"))
-        XCTAssertTrue(plan(now: "07:00", protection: 15)[0].body.contains("462 min"))
+    func testAlertsNeverPromiseSafeMinutes() {
+        let alerts = plan(now: "07:00")
+        XCTAssertTrue(alerts[0].body.contains("pronóstico"))
+        XCTAssertFalse(alerts.contains { $0.body.contains("aguanta") || $0.body.contains(" min") })
+        XCTAssertEqual(alerts, plan(now: "07:00", skin: .vi, protection: 50))
     }
 
     func testCloudyDayHasNoAlerts() throws {
         let s = try OpenMeteo.decode(fixture())
-        let p = AlertPlanner.plan(hours: s.hours, now: s.current.time, skin: .iii, protection: 1, timeZone: s.timeZone)
+        let p = AlertPlanner.plan(hours: s.hours, now: s.current.time, timeZone: s.timeZone)
         XCTAssertEqual(p, [], "el pico real de hoy fue 2.45: no alcanza ni uv moderado")
     }
 

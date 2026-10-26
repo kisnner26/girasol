@@ -18,7 +18,7 @@ public enum AlertPlanner {
     ]
     private static let lead: TimeInterval = 15 * 60
 
-    public static func plan(hours: [WeatherSnapshot.Hour], now: Date, skin: SkinType, protection: Double, timeZone: TimeZone) -> [PlannedAlert] {
+    public static func plan(hours: [WeatherSnapshot.Hour], now: Date, timeZone: TimeZone) -> [PlannedAlert] {
         let hs = hours.sorted { $0.start < $1.start }
         var alerts: [PlannedAlert] = []
 
@@ -29,10 +29,7 @@ public enum AlertPlanner {
                 guard hs[i].uvIndex >= t.uvi, previous < t.uvi else { continue }
                 let fire = max(hs[i].start.addingTimeInterval(-lead), now.addingTimeInterval(60))
                 guard hs[i].start > now else { continue }
-                let peak = hs[i...].prefix(3).map(\.uvIndex).max() ?? hs[i].uvIndex
-                let limit = Exposure.minutesToLimit(uvi: peak, usedFraction: 0, skin: skin, protection: protection)
-                let body = limit.map { L10n.tr("a este uv tu piel aguanta unos %d min. usa protector y busca sombra.", Int($0.rounded())) }
-                    ?? L10n.tr("usa protector y busca sombra.")
+                let body = L10n.tr("pronóstico uv: usa protección, ropa y sombra desde uv 3. no es una medición de tu piel.")
                 alerts.append(.init(id: "girasol.uv.\(t.key)", date: fire, title: L10n.tr("%@ desde las %@", L10n.tr(t.title), clock(hs[i].start, timeZone)), body: body))
                 break
             }
@@ -42,7 +39,7 @@ public enum AlertPlanner {
         if let peakIndex = hs.indices.max(by: { hs[$0].uvIndex < hs[$1].uvIndex }), hs[peakIndex].uvIndex >= 3,
            let back = hs[peakIndex...].first(where: { $0.uvIndex < 3 }), back.start > now {
             alerts.append(.init(id: "girasol.uv.down", date: max(back.start, now.addingTimeInterval(60)),
-                                title: L10n.tr("el uv ya bajó"), body: L10n.tr("buen momento para salir, uv bajo desde las %@.", clock(back.start, timeZone))))
+                                title: L10n.tr("el uv ya bajó"), body: L10n.tr("pronóstico: uv bajo desde las %@.", clock(back.start, timeZone))))
         }
         return alerts.sorted { $0.date < $1.date }
     }

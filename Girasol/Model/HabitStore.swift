@@ -26,15 +26,6 @@ final class HabitStore {
         save(byDay)
     }
 
-    /// guarda el uv mas alto del dia (solo tiene sentido para hoy: es cuando la app lo puede medir).
-    func recordSun(fraction: Double, day: Date, profile: Profile) {
-        var byDay = Dictionary(records.map { ($0.day, $0) }, uniquingKeysWith: { _, new in new })
-        var r = byDay[day] ?? DayRecord(day: day, waterMl: 0, waterGoal: profile.waterGoalMl, steps: 0, stepGoal: profile.stepGoal)
-        r.sunFraction = max(r.sunFraction ?? 0, fraction)
-        byDay[day] = r
-        save(byDay)
-    }
-
     private func save(_ byDay: [Date: DayRecord]) {
         records = byDay.values.sorted { $0.day < $1.day }.suffix(60).map { $0 }
         if let data = try? JSONEncoder().encode(records) { UserDefaults.standard.set(data, forKey: key) }

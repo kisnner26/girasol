@@ -8,7 +8,7 @@ app gratuita de salud para apple watch, en español e inglés, hecha para vivir 
 ## por qué usarla
 
 - **todo en una pantalla, sin abrir el iphone.** sol, agua, calorías y pulso en tres anillos al abrir la app.
-- **te dice si puedes salir, no solo el número.** el índice uv se traduce a un consejo: cuánto tiempo aguantas al sol según tu piel y tu protector, y a qué hora baja.
+- **te dice si puedes salir, no solo el número.** el índice uv se traduce a orientación general de protección y muestra a qué hora baja el pronóstico.
 - **privada por diseño.** tus datos de salud se quedan en tu reloj y en la app Salud. lo único que sale es tu ubicación redondeada a 2 decimales, para pedir el clima.
 - **gratis y de código abierto.** no hay servidor, no hay cuenta, no hay nada que vender.
 - **en español e inglés**, con selector de idioma dentro de la app (sigue al del reloj por defecto).
@@ -18,12 +18,12 @@ app gratuita de salud para apple watch, en español e inglés, hecha para vivir 
 
 ### sol
 - índice uv ahora y curva del día, con la hora del pico y el tramo de riesgo.
-- exposición acumulada según tu tipo de piel y el protector que llevas, usando los minutos al aire libre que mide el reloj.
+- exposición ambiental estimada en sed con pronóstico uv y tiempo con luz diurna de Salud. no mide la radiación recibida en tu piel ni calcula minutos seguros.
 - aviso "protector / sombra / puedes salir", temperatura y sensación de calor.
-- alertas locales cuando te acercas a tu límite.
+- alertas locales de cambios previstos de categoría uv.
 - recordatorio de reaplicar protector: un temporizador de 2 h que arranca solo cuando el consejo pide protector y llevas más de 15 min al aire libre, o cuando pulsas "me puse protector".
 
-<table><tr><td align="center"><img src="docs/screens/sol/ahora.png" width="170" alt="uv ahora"><br><sub>uv ahora</sub></td><td align="center"><img src="docs/screens/sol/hoy.png" width="170" alt="uv de hoy"><br><sub>uv de hoy</sub></td><td align="center"><img src="docs/screens/sol/ajustes.png" width="170" alt="piel, protector y alertas"><br><sub>piel, protector y alertas</sub></td></tr></table>
+<table><tr><td align="center"><img src="docs/screens/sol/ahora.png" width="170" alt="uv ahora"><br><sub>uv ahora</sub></td><td align="center"><img src="docs/screens/sol/hoy.png" width="170" alt="uv de hoy"><br><sub>uv de hoy</sub></td><td align="center"><img src="docs/screens/sol/ajustes.png" width="170" alt="protector y alertas"><br><sub>protector y alertas</sub></td></tr></table>
 
 ### en la esfera
 - complicaciones de uv (con la hora del pico), agua y calorías restantes, en los cuatro formatos de la esfera. el uv se recalcula solo cada 30 min con la curva del día guardada.
@@ -42,7 +42,7 @@ app gratuita de salud para apple watch, en español e inglés, hecha para vivir 
 <table><tr><td align="center"><img src="docs/screens/comida/comida.png" width="170" alt="comida"><br><sub>comida</sub></td></tr></table>
 
 ### racha
-- días seguidos cumpliendo agua, pasos y sol dentro de tu límite, con la vista de los últimos 7 días y tu mejor racha.
+- días seguidos cumpliendo tus metas de agua y pasos, con la vista de los últimos 7 días y tu mejor racha.
 
 <table><tr><td align="center"><img src="docs/screens/racha/racha.png" width="170" alt="racha de 7 días"><br><sub>racha de 7 días</sub></td></tr></table>
 
@@ -104,3 +104,5 @@ la lógica (uv, exposición, hidratación, nutrición, motor de los juegos) vive
 clima y uv: [Open-Meteo](https://open-meteo.com) (CC BY 4.0).
 
 licencia MIT.
+
+metodología y fuentes: [estimación solar](docs/solar-methodology.md).

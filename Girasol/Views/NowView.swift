@@ -27,13 +27,7 @@ struct NowView: View {
                         Text(unit.text(celsius: w.current.temperature)).font(.serif(24)).foregroundStyle(Palette.ink)
                         Text("sensación \(unit.text(celsius: w.current.apparentTemperature))").font(.serif(11, italic: true)).foregroundStyle(Palette.mid)
                     }
-                    if w.current.isDay {
-                        if let m = model.safeMinutes {
-                            Caption("tu piel aguanta ≈ \(minutesText(m))")
-                        } else {
-                            Caption("sin límite con este uv")
-                        }
-                    }
+                    HealthNotice()
                     if model.isCached {
                         Caption("sin conexión · datos de \(clock(w.fetchedAt, w.timeZone))", color: Palette.rose)
                     }

@@ -4,23 +4,13 @@ import Foundation
 public enum Exposure {
     public static let joulesPerMinutePerUVI = 1.5
 
-    /// j/m2 recibidos en `minutes` a `uvi`, ya divididos por el factor de proteccion.
-    public static func dose(uvi: Double, minutes: Double, protection: Double = 1) -> Double {
-        guard uvi > 0, minutes > 0 else { return 0 }
-        return uvi * joulesPerMinutePerUVI * minutes / max(1, protection)
+    /// estimacion ambiental, no dosis medida en la piel. no aplica descuentos por spf.
+    public static func dose(uvi: Double, minutes: Double) -> Double {
+        guard uvi.isFinite, minutes.isFinite, uvi > 0, minutes > 0 else { return 0 }
+        return uvi * joulesPerMinutePerUVI * minutes
     }
 
-    /// 1.0 = has recibido tu dosis eritemica minima.
-    public static func fractionOfLimit(dose: Double, skin: SkinType) -> Double {
-        dose / skin.medJoulesPerSquareMeter
-    }
 
-    /// minutos que faltan para el limite a este uv. nil si el uv es tan bajo que no hay limite practico.
-    public static func minutesToLimit(uvi: Double, usedFraction: Double, skin: SkinType, protection: Double = 1) -> Double? {
-        guard uvi >= 0.5 else { return nil }
-        let remaining = max(0, 1 - usedFraction) * skin.medJoulesPerSquareMeter
-        return remaining / (uvi * joulesPerMinutePerUVI / max(1, protection))
-    }
 }
 
 /// uv por hora con interpolacion lineal entre puntos.
@@ -48,27 +38,36 @@ public struct UVCurve: Sendable, Equatable {
     }
 }
 
-public enum LimitStage: Int, Comparable, Sendable {
-    case none, approaching, reached
-    public init(fraction: Double) { self = fraction >= 1 ? .reached : fraction >= 0.8 ? .approaching : .none }
-    public static func < (a: LimitStage, b: LimitStage) -> Bool { a.rawValue < b.rawValue }
-}
-
 /// exposicion acumulada: minutos al aire libre (healthkit) x uv de esa hora (meteorologia).
 public struct ExposureSummary: Sendable, Equatable {
     public let daylightMinutes: Double
     public let dose: Double
-    public let fraction: Double
-    public var stage: LimitStage { LimitStage(fraction: fraction) }
+    public let estimatedMinutes: Double
+    /// cie: 1 sed = 100 j/m²; no representa una dosis segura.
+    public var standardErythemaDoses: Double { dose / 100 }
 
     /// `daylight`: minutos al aire libre por cubo de tiempo (inicio del cubo -> minutos).
-    public static func build(daylight: [Date: Double], curve: UVCurve, skin: SkinType, protection: Double, bucket: TimeInterval = 3600) -> ExposureSummary {
+    public static func build(daylight: [Date: Double], curve: UVCurve, bucket: TimeInterval = 3600) -> ExposureSummary {
         var minutes = 0.0
         var dose = 0.0
-        for (start, m) in daylight where m > 0 {
+        var estimatedMinutes = 0.0
+        for (start, value) in daylight where value.isFinite && value > 0 {
+            let m = min(value, max(0, bucket / 60))
             minutes += m
-            dose += Exposure.dose(uvi: curve.uvi(at: start.addingTimeInterval(bucket / 2)), minutes: m, protection: protection)
+            guard let index = curve.points.firstIndex(where: { $0.date == start }),
+                  curve.points[index].uvi.isFinite, curve.points[index].uvi >= 0 else { continue }
+            let current = curve.points[index]
+            let next = curve.points.dropFirst(index + 1).first
+            let uv: Double
+            if let next, next.date.timeIntervalSince(current.date) == bucket,
+               next.uvi.isFinite, next.uvi >= 0 {
+                uv = (current.uvi + next.uvi) / 2
+            } else {
+                uv = current.uvi
+            }
+            estimatedMinutes += m
+            dose += Exposure.dose(uvi: uv, minutes: m)
         }
-        return ExposureSummary(daylightMinutes: minutes, dose: dose, fraction: Exposure.fractionOfLimit(dose: dose, skin: skin))
+        return ExposureSummary(daylightMinutes: minutes, dose: dose, estimatedMinutes: estimatedMinutes)
     }
 }
