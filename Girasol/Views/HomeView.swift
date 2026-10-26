@@ -10,10 +10,12 @@ enum Route: Hashable {
 struct HomeView: View {
     @Environment(AppModel.self) private var sun
     @Environment(HealthModel.self) private var health
+    @State private var quickAdd: String?
 
     var body: some View {
         let p = health.profile
-        ScrollView {
+        ZStack(alignment: .top) {
+            ScrollView {
             VStack(spacing: 6) {
                 Text(Greeting.text(hour: Calendar.current.component(.hour, from: Date()), name: p.displayName))
                     .font(.serif(16, italic: true)).foregroundStyle(Palette.ink)
@@ -32,6 +34,7 @@ struct HomeView: View {
                     legend("comida", Palette.olive)
                     legend("sol", Palette.rose)
                 }
+                Caption("doble toque añade un vaso de agua").padding(.top, 1)
 
                 Hairline().padding(.vertical, 4)
 
@@ -65,8 +68,29 @@ struct HomeView: View {
             }
             .buttonStyle(.plain)
             .padding(.horizontal, 6)
+            }
+
+            if let text = quickAdd {
+                Caption(verbatim: text, color: Palette.moss)
+                    .padding(.top, 4)
+                    .transition(.opacity)
+            }
+
+            // doble toque en cualquier parte de esta pantalla: un vaso de agua, sin tocar nada.
+            Button("añadir un vaso de agua") { logWaterQuick(glassMl: p.glassMl) }
+                .opacity(0).frame(width: 1, height: 1)
+                .doubleTapPrimary()
         }
         .paperBackground()
+    }
+
+    private func logWaterQuick(glassMl: Int) {
+        Task { await health.addWater(glassMl) }
+        withAnimation { quickAdd = loc("+ \(health.profile.volumeUnit.text(ml: glassMl)) de agua") }
+        Task {
+            try? await Task.sleep(for: .seconds(1.6))
+            withAnimation { quickAdd = nil }
+        }
     }
 
     private func legend(_ text: String, _ color: Color) -> some View {

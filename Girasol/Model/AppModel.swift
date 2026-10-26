@@ -136,6 +136,14 @@ final class AppModel {
         await scheduleSunscreenReminder()
     }
 
+    /// posponer el aviso: empuja el vencimiento 20 min mas, sin contar que ya te lo reaplicaste.
+    func snoozeSunscreen(by minutes: TimeInterval = 20) async {
+        guard let t = sunscreenTimer else { return }
+        setTimer(SunscreenTimer(appliedAt: t.appliedAt.addingTimeInterval(minutes * 60)))
+        Haptics.play(.click)
+        await scheduleSunscreenReminder()
+    }
+
     private func setTimer(_ t: SunscreenTimer?) {
         sunscreenTimer = t
         if let t, let data = try? JSONEncoder().encode(t) { UserDefaults.standard.set(data, forKey: "girasol.sunscreenTimer") }

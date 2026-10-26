@@ -24,7 +24,8 @@ final class NotificationService: NSObject, UNUserNotificationCenterDelegate {
             let content = UNMutableNotificationContent()
             content.title = a.title
             content.body = a.body
-            content.sound = .default
+            // aviso ambiente: un toque en la muñeca, sin sonido, para no tener que sacar el reloj a mirar.
+            content.sound = nil
             let parts = Calendar.current.dateComponents([.year, .month, .day, .hour, .minute], from: a.date)
             let request = UNNotificationRequest(identifier: a.id, content: content, trigger: UNCalendarNotificationTrigger(dateMatching: parts, repeats: false))
             try? await center.add(request)

@@ -75,11 +75,14 @@ struct SunscreenTimerView: View {
                     VStack(spacing: 4) {
                         Caption("reaplicar protector en")
                         Text(minutesText(t.remaining(at: tl.date) / 60)).font(.serif(20, italic: true)).foregroundStyle(Palette.ink)
+                        Button("posponer 20 min") { Task { await model.snoozeSunscreen() } }
+                            .buttonStyle(InkButtonStyle()).doubleTapPrimary()
+                        Text("doble toque pospone").font(.serif(9, italic: true)).foregroundStyle(Palette.mid)
                         Button("ya me lo reapliqué") { Task { await model.applySunscreen() } }.buttonStyle(QuietButtonStyle())
                         Button("cancelar") { Task { await model.clearSunscreen() } }.buttonStyle(QuietButtonStyle())
                     }
                 } else {
-                    Button("me puse protector") { Task { await model.applySunscreen() } }.buttonStyle(InkButtonStyle())
+                    Button("me puse protector") { Task { await model.applySunscreen() } }.buttonStyle(InkButtonStyle()).doubleTapPrimary()
                     Text("te aviso a las 2 h").font(.serif(10, italic: true)).foregroundStyle(Palette.mid)
                 }
             }
