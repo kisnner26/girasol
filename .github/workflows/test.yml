@@ -1,8 +1,12 @@
 name: tests
 on: [push, pull_request]
+permissions:
+  contents: read
 jobs:
   swift-test:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
       - run: swift test
+      - name: Validate release resources and privacy manifests
+        run: python3 scripts/validate-release.py
